@@ -6,12 +6,10 @@ import (
 	"strconv"
 
 	"brb/internal/entity"
-
-	"github.com/gorilla/mux"
 )
 
-// SignHandler 处理sign相关的HTTP请求
-type SignHandler struct {
+// signHandler 处理sign相关的HTTP请求
+type signHandler struct {
 	signService SignService
 }
 
@@ -23,12 +21,12 @@ type SignService interface {
 }
 
 // NewSignHandler 创建新的SignHandler
-func NewSignHandler(signService SignService) *SignHandler {
-	return &SignHandler{signService: signService}
+func NewSignHandler(signService SignService) *signHandler {
+	return &signHandler{signService: signService}
 }
 
 // CreateSign 创建新sign
-func (h *SignHandler) CreateSign(w http.ResponseWriter, r *http.Request) {
+func (h *signHandler) CreateSign(w http.ResponseWriter, r *http.Request) {
 	var sign entity.Sign
 	if err := json.NewDecoder(r.Body).Decode(&sign); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -46,9 +44,14 @@ func (h *SignHandler) CreateSign(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetSign 获取单个sign
-func (h *SignHandler) GetSign(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.ParseInt(vars["id"], 10, 64)
+func (h *signHandler) GetSign(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -65,9 +68,14 @@ func (h *SignHandler) GetSign(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateSign 更新sign
-func (h *SignHandler) UpdateSign(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.ParseInt(vars["id"], 10, 64)
+func (h *signHandler) UpdateSign(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -89,9 +97,14 @@ func (h *SignHandler) UpdateSign(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteSign 删除sign
-func (h *SignHandler) DeleteSign(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.ParseInt(vars["id"], 10, 64)
+func (h *signHandler) DeleteSign(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -106,9 +119,10 @@ func (h *SignHandler) DeleteSign(w http.ResponseWriter, r *http.Request) {
 }
 
 // RegisterRoutes 注册sign相关路由
-func (h *SignHandler) RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/signs", h.CreateSign).Methods("POST")
-	r.HandleFunc("/signs/{id}", h.GetSign).Methods("GET")
-	r.HandleFunc("/signs/{id}", h.UpdateSign).Methods("PUT")
-	r.HandleFunc("/signs/{id}", h.DeleteSign).Methods("DELETE")
+func (h *signHandler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/signs", h.CreateSign)
+	mux.HandleFunc("GET /api/signs/{id}", h.GetSign)
+	mux.HandleFunc("PUT /api/signs/{id}", h.UpdateSign)
+	mux.HandleFunc("DELETE /api/signs/{id}", h.DeleteSign)
 }
+

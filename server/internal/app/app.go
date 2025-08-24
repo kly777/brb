@@ -9,20 +9,19 @@ import (
 	"brb/internal/repo"
 	"brb/internal/service"
 
-	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 // App 表示应用程序
 type App struct {
-	DB     *sql.DB
-	Router *mux.Router
+	DB  *sql.DB
+	Mux *http.ServeMux
 }
 
 // NewApp 创建并初始化应用程序
 func NewApp(dbPath string) (*App, error) {
 	app := &App{
-		Router: mux.NewRouter(),
+		Mux: http.NewServeMux(),
 	}
 
 	// 初始化数据库连接
@@ -48,23 +47,49 @@ func (a *App) initDependencies() error {
 		return fmt.Errorf("failed to create sign repository: %w", err)
 	}
 
+	todoRepo, err := repo.NewTodoRepo(a.DB)
+	if err != nil {
+		return fmt.Errorf("failed to create todo repository: %w", err)
+	}
+
+	taskRepo, err := repo.NewTaskRepo(a.DB)
+	if err != nil {
+		return fmt.Errorf("failed to create task repository: %w", err)
+	}
+
+	eventRepo, err := repo.NewEventRepo(a.DB)
+	if err != nil {
+		return fmt.Errorf("failed to create event repository: %w", err)
+	}
+
 	// 初始化services
 	signService := service.NewSignService(signRepo)
+	todoService := service.NewTodoService(todoRepo, taskRepo)
+	taskService := service.NewTaskService(taskRepo, todoRepo)
+	eventService := service.NewEventService(eventRepo, taskRepo)
 
 	// 初始化handlers
 	signHandler := handler.NewSignHandler(signService)
+	todoHandler := handler.NewTodoHandler(todoService)
+	taskHandler := handler.NewTaskHandler(taskService)
+	eventHandler := handler.NewEventHandler(eventService)
 
-	// 注册路由
-	apiRouter := a.Router.PathPrefix("/api").Subrouter()
-	signHandler.RegisterRoutes(apiRouter)
+	// 注册路由 - 使用net/http的新特性，方法匹配和路径模式
+	signHandler.RegisterRoutes(a.Mux)
+	todoHandler.RegisterRoutes(a.Mux)
+	taskHandler.RegisterRoutes(a.Mux)
+	eventHandler.RegisterRoutes(a.Mux)
 
 	return nil
 }
 
 // Run 启动应用程序
 func (a *App) Run(addr string) error {
+	fs:=http.FileServer(http.Dir("./static"))
+	a.Mux.Handle("/", fs)
+
 	fmt.Printf("服务器运行在 %s\n", addr)
-	return http.ListenAndServe(addr, a.Router)
+	return http.ListenAndServe(addr, a.Mux)
 }
 
 // Close 关闭应用程序资源
@@ -74,3 +99,4 @@ func (a *App) Close() error {
 	}
 	return nil
 }
+

@@ -1,6 +1,7 @@
 package entity
 
 
+
 // Sign 表示能指/所指实体
 type Sign struct {
 	ID        int64  `json:"id"`
@@ -9,7 +10,7 @@ type Sign struct {
 }
 
 type Onton struct {
-	ID        int64  `json:"id"`
-	adic      int8   `json:"adic"`
-	
+	ID   int64 `json:"id"`
+	Adic int8  `json:"adic"`
 }
+

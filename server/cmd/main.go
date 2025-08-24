@@ -8,12 +8,12 @@ import (
 
 func main() {
 	// 创建应用程序实例
-	application, err := app.NewApp("file:signs.db?cache=shared&mode=rwc")
+	app, err := app.NewApp("file:brb.db?cache=shared&mode=rwc")
 	if err != nil {
 		log.Fatalf("Failed to initialize application: %v", err)
 	}
-	defer application.Close()
+	defer app.Close()
 
 	// 启动HTTP服务器
-	log.Fatal(application.Run(":8080"))
+	log.Fatal(app.Run(":8080"))
 }
