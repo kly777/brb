@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
 	"brb/internal/handler"
@@ -85,11 +86,26 @@ func (a *App) initDependencies() error {
 
 // Run 启动应用程序
 func (a *App) Run(addr string) error {
-	fs:=http.FileServer(http.Dir("./static"))
-	a.Mux.Handle("/", fs)
+	// 添加CORS中间件
+	corsMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 设置CORS头
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// 处理预检请求
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// 调用原始的多路复用器
+		a.Mux.ServeHTTP(w, r)
+	})
 
 	fmt.Printf("服务器运行在 %s\n", addr)
-	return http.ListenAndServe(addr, a.Mux)
+	defer func() { log.Println("服务器已关闭") }()
+	return http.ListenAndServe(addr, corsMux)
 }
 
 // Close 关闭应用程序资源

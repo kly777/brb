@@ -40,6 +40,16 @@ func (r *taskRepo) Create(task *entity.Task) error {
 	return err
 }
 
+// HaveID 检查是否存在指定ID的task
+func (r *taskRepo) HaveID(id string) bool {
+	var exists bool
+	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?)", id).Scan(&exists)
+	if err != nil {
+		return false
+	}
+	return exists
+}
+
 // GetByID 根据ID获取task
 func (r *taskRepo) GetByID(id string) (*entity.Task, error) {
 	task := &entity.Task{}

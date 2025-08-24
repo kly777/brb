@@ -40,6 +40,28 @@ func (r *todoRepo) Create(todo *entity.Todo) error {
 	return err
 }
 
+// GetAll 获取所有todo记录
+func (r *todoRepo) GetAll() ([]*entity.Todo, error) {
+	rows, err := r.db.Query("SELECT id, task_id, status, priority, completed_time, start_time, end_time FROM todos")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var todos []*entity.Todo
+	for rows.Next() {
+		todo := &entity.Todo{}
+		if err := rows.Scan(&todo.ID, &todo.TaskID, &todo.Status, &todo.Priority, &todo.CompletedTime, &todo.StartTime, &todo.EndTime); err != nil {
+			return nil, err
+		}
+		todos = append(todos, todo)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return todos, nil
+}
+
 // GetByID 根据ID获取todo
 func (r *todoRepo) GetByID(id string) (*entity.Todo, error) {
 	todo := &entity.Todo{}

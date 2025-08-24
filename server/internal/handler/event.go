@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"brb/internal/dto"
 	"brb/internal/entity"
 )
 
 // eventHandler 处理event相关的HTTP请求
 type eventHandler struct {
-	eventService EventService
+	eventService eventService
 }
 
-type EventService interface {
+type eventService interface {
 	CreateEvent(event *entity.Event) error
 	GetEventByID(id string) (*entity.Event, error)
 	UpdateEvent(event *entity.Event) error
@@ -20,26 +21,28 @@ type EventService interface {
 }
 
 // NewEventHandler 创建新的EventHandler
-func NewEventHandler(eventService EventService) *eventHandler {
+func NewEventHandler(eventService eventService) *eventHandler {
 	return &eventHandler{eventService: eventService}
 }
 
 // CreateEvent 创建新event
 func (h *eventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
-	var event entity.Event
-	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+	var req dto.EventCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.eventService.CreateEvent(&event); err != nil {
+	event := req.ToEntity()
+	if err := h.eventService.CreateEvent(event); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	response := dto.FromEventEntity(event)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(event)
+	json.NewEncoder(w).Encode(response)
 }
 
 // GetEvent 获取单个event
@@ -56,8 +59,9 @@ func (h *eventHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := dto.FromEventEntity(event)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(event)
+	json.NewEncoder(w).Encode(response)
 }
 
 // UpdateEvent 更新event
@@ -68,14 +72,14 @@ func (h *eventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event entity.Event
-	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+	var req dto.EventUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	event.ID = id
 
-	if err := h.eventService.UpdateEvent(&event); err != nil {
+	event := req.ToEntity(id)
+	if err := h.eventService.UpdateEvent(event); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

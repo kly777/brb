@@ -13,6 +13,7 @@ type taskService struct {
 
 type taskRepository interface {
 	Create(task *entity.Task) error
+	HaveID(id string) bool
 	GetByID(id string) (*entity.Task, error)
 	Update(task *entity.Task) error
 	Delete(id string) error

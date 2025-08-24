@@ -5,15 +5,16 @@ import (
 	"net/http"
 	"strconv"
 
+	"brb/internal/dto"
 	"brb/internal/entity"
 )
 
 // signHandler 处理sign相关的HTTP请求
 type signHandler struct {
-	signService SignService
+	signService signService
 }
 
-type SignService interface {
+type signService interface {
 	CreateSign(sign *entity.Sign) error
 	GetSignByID(id int64) (*entity.Sign, error)
 	UpdateSign(sign *entity.Sign) error
@@ -21,26 +22,28 @@ type SignService interface {
 }
 
 // NewSignHandler 创建新的SignHandler
-func NewSignHandler(signService SignService) *signHandler {
+func NewSignHandler(signService signService) *signHandler {
 	return &signHandler{signService: signService}
 }
 
 // CreateSign 创建新sign
 func (h *signHandler) CreateSign(w http.ResponseWriter, r *http.Request) {
-	var sign entity.Sign
-	if err := json.NewDecoder(r.Body).Decode(&sign); err != nil {
+	var req dto.SignCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.signService.CreateSign(&sign); err != nil {
+	sign := req.ToEntity()
+	if err := h.signService.CreateSign(sign); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	response := dto.FromSignEntity(sign)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(sign)
+	json.NewEncoder(w).Encode(response)
 }
 
 // GetSign 获取单个sign
@@ -63,8 +66,9 @@ func (h *signHandler) GetSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := dto.FromSignEntity(sign)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(sign)
+	json.NewEncoder(w).Encode(response)
 }
 
 // UpdateSign 更新sign
@@ -81,14 +85,14 @@ func (h *signHandler) UpdateSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var sign entity.Sign
-	if err := json.NewDecoder(r.Body).Decode(&sign); err != nil {
+	var req dto.SignUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	sign.ID = id
 
-	if err := h.signService.UpdateSign(&sign); err != nil {
+	sign := req.ToEntity(id)
+	if err := h.signService.UpdateSign(sign); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

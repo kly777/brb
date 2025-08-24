@@ -1,6 +1,10 @@
 package entity
 
-import "time"
+import (
+	"encoding/json"
+	"strings"
+	"time"
+)
 
 // Event 事件结构体,一个Event可以对应多个Task
 type Event struct {
@@ -22,11 +26,82 @@ type Task struct {
 	Description string `json:"description"` // 任务描述
 
 	// 在开始结束时间中完成即可
-	StartTime time.Time `json:"startTime"` // 开始时间
-	EndTime   time.Time `json:"endTime"`   // 结束时间
+	StartTime *time.Time `json:"startTime"` // 开始时间
+	EndTime   *time.Time `json:"endTime"`   // 结束时间
 
 	// 预估时间
-	EstimateTime time.Duration `json:"estimateTime"`
+	EstimateTime *time.Duration `json:"estimateTime"`
+}
+
+// UnmarshalJSON 自定义JSON解码，处理空字符串时间字段
+func (t *Task) UnmarshalJSON(data []byte) error {
+	type Alias Task
+	aux := &struct {
+		StartTime    string `json:"startTime"`
+		EndTime      string `json:"endTime"`
+		EstimateTime string `json:"estimateTime"`
+		*Alias
+	}{
+		Alias: (*Alias)(t),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// 处理StartTime
+	if strings.TrimSpace(aux.StartTime) == "" {
+		t.StartTime = nil
+	} else {
+		parsedTime, err := time.Parse(time.RFC3339, aux.StartTime)
+		if err != nil {
+			return err
+		}
+		t.StartTime = &parsedTime
+	}
+
+	// 处理EndTime
+	if strings.TrimSpace(aux.EndTime) == "" {
+		t.EndTime = nil
+	} else {
+		parsedTime, err := time.Parse(time.RFC3339, aux.EndTime)
+		if err != nil {
+			return err
+		}
+		t.EndTime = &parsedTime
+	}
+
+	// 处理EstimateTime
+	if strings.TrimSpace(aux.EstimateTime) == "" {
+		t.EstimateTime = nil
+	} else {
+		parsedDuration, err := time.ParseDuration(aux.EstimateTime)
+		if err != nil {
+			return err
+		}
+		t.EstimateTime = &parsedDuration
+	}
+
+	return nil
+}
+
+// ValidationError 表示验证错误
+type ValidationError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
+}
+
+// NotFoundError 表示资源未找到错误
+type NotFoundError struct {
+	ID string `json:"id"`
+}
+
+func (e *NotFoundError) Error() string {
+	return "resource with ID " + e.ID + " not found"
 }
 
 type Status string
@@ -47,9 +122,61 @@ type Todo struct {
 	Status   Status `json:"status"`
 	Priority int    `json:"priority"`
 
-	CompletedTime time.Time `json:"completedTime"`
+	CompletedTime *time.Time `json:"completedTime"`
 
 	// 计划执行Task的时间
-	StartTime time.Time `json:"startTime"` // 开始时间
-	EndTime   time.Time `json:"endTime"`
+	StartTime *time.Time `json:"startTime"` // 开始时间
+	EndTime   *time.Time `json:"endTime"`
+}
+
+// UnmarshalJSON 自定义JSON解码，处理空字符串时间字段
+func (t *Todo) UnmarshalJSON(data []byte) error {
+	type Alias Todo
+	aux := &struct {
+		StartTime      string `json:"startTime"`
+		EndTime        string `json:"endTime"`
+		CompletedTime  string `json:"completedTime"`
+		*Alias
+	}{
+		Alias: (*Alias)(t),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// 处理StartTime
+	if strings.TrimSpace(aux.StartTime) == "" {
+		t.StartTime = nil
+	} else {
+		parsedTime, err := time.Parse(time.RFC3339, aux.StartTime)
+		if err != nil {
+			return err
+		}
+		t.StartTime = &parsedTime
+	}
+
+	// 处理EndTime
+	if strings.TrimSpace(aux.EndTime) == "" {
+		t.EndTime = nil
+	} else {
+		parsedTime, err := time.Parse(time.RFC3339, aux.EndTime)
+		if err != nil {
+			return err
+		}
+		t.EndTime = &parsedTime
+	}
+
+	// 处理CompletedTime
+	if strings.TrimSpace(aux.CompletedTime) == "" {
+		t.CompletedTime = nil
+	} else {
+		parsedTime, err := time.Parse(time.RFC3339, aux.CompletedTime)
+		if err != nil {
+			return err
+		}
+		t.CompletedTime = &parsedTime
+	}
+
+	return nil
 }
