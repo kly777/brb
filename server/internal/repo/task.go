@@ -8,7 +8,7 @@ import (
 )
 
 type taskRepo struct {
-	db *sql.DB
+	base *BaseRepo[entity.Task]
 }
 
 func NewTaskRepo(db *sql.DB) (*taskRepo, error) {
@@ -28,22 +28,30 @@ func NewTaskRepo(db *sql.DB) (*taskRepo, error) {
 		return nil, fmt.Errorf("failed to create tasks table: %w", err)
 	}
 
-	return &taskRepo{db: db}, nil
+	baseRepo := NewBaseRepo[entity.Task](db, "tasks")
+	return &taskRepo{base: baseRepo}, nil
 }
 
 // Create 创建新的task记录
 func (r *taskRepo) Create(task *entity.Task) error {
-	_, err := r.db.Exec(
-		"INSERT INTO tasks (id, event_id, sub_task_id, description, start_time, end_time, estimate_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		task.ID, task.EventID, task.MainTaskID, task.Description, task.StartTime, task.EndTime, task.EstimateTime,
-	)
+	fields := map[string]interface{}{
+		"id":            task.ID,
+		"event_id":      task.EventID,
+		"sub_task_id":   task.MainTaskID,
+		"description":   task.Description,
+		"start_time":    task.StartTime,
+		"end_time":      task.EndTime,
+		"estimate_time": task.EstimateTime,
+	}
+
+	_, err := r.base.Create(fields)
 	return err
 }
 
 // HaveID 检查是否存在指定ID的task
 func (r *taskRepo) HaveID(id string) bool {
 	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?)", id).Scan(&exists)
+	err := r.base.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?)", id).Scan(&exists)
 	if err != nil {
 		return false
 	}
@@ -52,12 +60,7 @@ func (r *taskRepo) HaveID(id string) bool {
 
 // GetByID 根据ID获取task
 func (r *taskRepo) GetByID(id string) (*entity.Task, error) {
-	task := &entity.Task{}
-	err := r.db.QueryRow(
-		"SELECT id, event_id, sub_task_id, description, start_time, end_time, estimate_time FROM tasks WHERE id = ?",
-		id,
-	).Scan(&task.ID, &task.EventID, &task.MainTaskID, &task.Description, &task.StartTime, &task.EndTime, &task.EstimateTime)
-
+	task, err := r.base.FindByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("task not found")
@@ -69,21 +72,26 @@ func (r *taskRepo) GetByID(id string) (*entity.Task, error) {
 
 // Update 更新task记录
 func (r *taskRepo) Update(task *entity.Task) error {
-	_, err := r.db.Exec(
-		"UPDATE tasks SET event_id = ?, sub_task_id = ?, description = ?, start_time = ?, end_time = ?, estimate_time = ? WHERE id = ?",
-		task.EventID, task.MainTaskID, task.Description, task.StartTime, task.EndTime, task.EstimateTime, task.ID,
-	)
-	return err
+	fields := map[string]interface{}{
+		"event_id":      task.EventID,
+		"sub_task_id":   task.MainTaskID,
+		"description":   task.Description,
+		"start_time":    task.StartTime,
+		"end_time":      task.EndTime,
+		"estimate_time": task.EstimateTime,
+	}
+
+	return r.base.Update(task.ID, fields)
 }
 
 // Delete 删除task记录
 func (r *taskRepo) Delete(id string) error {
-	_, err := r.db.Exec("DELETE FROM tasks WHERE id = ?", id)
-	return err
+	return r.base.Delete(id)
 }
 
 // DeleteByEventID 根据eventID删除所有相关的tasks
 func (r *taskRepo) DeleteByEventID(eventID string) error {
-	_, err := r.db.Exec("DELETE FROM tasks WHERE event_id = ?", eventID)
+	query := "DELETE FROM tasks WHERE event_id = ?"
+	_, err := r.base.db.Exec(query, eventID)
 	return err
 }

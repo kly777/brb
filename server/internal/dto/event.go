@@ -16,7 +16,7 @@ type EventUpdateRequest struct {
 	Recurrence  string `json:"recurrence"`
 }
 
-// EventResponse DTO for event responses
+// 用于响应的EventResponse dto
 type EventResponse struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`

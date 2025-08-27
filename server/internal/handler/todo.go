@@ -6,6 +6,7 @@ import (
 
 	"brb/internal/dto"
 	"brb/internal/entity"
+	"brb/pkg/logger"
 )
 
 // todoHandler 处理todo相关的HTTP请求
@@ -33,6 +34,7 @@ func (h *todoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	logger.Tip.Println("Received CreateTodo request:", req)
 
 	todo := req.ToEntity()
 	if err := h.todoService.CreateTodo(todo); err != nil {
@@ -48,6 +50,7 @@ func (h *todoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 
 // GetAllTodo 获取所有todo
 func (h *todoHandler) GetAllTodo(w http.ResponseWriter, r *http.Request) {
+	logger.Tip.Println("Received GetAllTodo request")
 	todos, err := h.todoService.GetAllTodo()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -61,6 +64,7 @@ func (h *todoHandler) GetAllTodo(w http.ResponseWriter, r *http.Request) {
 // GetTodo 获取单个todo
 func (h *todoHandler) GetTodo(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	logger.Tip.Println("Received GetTodo request for ID:", id)
 	if id == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -84,15 +88,18 @@ func (h *todoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
+	logger.Tip.Println("Received UpdateTodo request for ID:", id)
 
 	var req dto.TodoUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error.Println("Error decoding request body:", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	todo := req.ToEntity(id)
 	if err := h.todoService.UpdateTodo(todo); err != nil {
+		logger.Error.Println("Error updating todo:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

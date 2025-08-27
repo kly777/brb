@@ -8,7 +8,7 @@ import (
 )
 
 type eventRepo struct {
-	db *sql.DB
+	base *BaseRepo[entity.Event]
 }
 
 func NewEventRepo(db *sql.DB) (*eventRepo, error) {
@@ -25,26 +25,26 @@ func NewEventRepo(db *sql.DB) (*eventRepo, error) {
 		return nil, fmt.Errorf("failed to create events table: %w", err)
 	}
 
-	return &eventRepo{db: db}, nil
+	baseRepo := NewBaseRepo[entity.Event](db, "events")
+	return &eventRepo{base: baseRepo}, nil
 }
 
 // Create 创建新的event记录
 func (r *eventRepo) Create(event *entity.Event) error {
-	_, err := r.db.Exec(
-		"INSERT INTO events (id, title, description, recurrence) VALUES (?, ?, ?, ?)",
-		event.ID, event.Title, event.Description, event.Recurrence,
-	)
+	fields := map[string]interface{}{
+		"id":          event.ID,
+		"title":       event.Title,
+		"description": event.Description,
+		"recurrence":  event.Recurrence,
+	}
+
+	_, err := r.base.Create(fields)
 	return err
 }
 
 // GetByID 根据ID获取event
 func (r *eventRepo) GetByID(id string) (*entity.Event, error) {
-	event := &entity.Event{}
-	err := r.db.QueryRow(
-		"SELECT id, title, description, recurrence FROM events WHERE id = ?",
-		id,
-	).Scan(&event.ID, &event.Title, &event.Description, &event.Recurrence)
-
+	event, err := r.base.FindByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("event not found")
@@ -56,15 +56,16 @@ func (r *eventRepo) GetByID(id string) (*entity.Event, error) {
 
 // Update 更新event记录
 func (r *eventRepo) Update(event *entity.Event) error {
-	_, err := r.db.Exec(
-		"UPDATE events SET title = ?, description = ?, recurrence = ? WHERE id = ?",
-		event.Title, event.Description, event.Recurrence, event.ID,
-	)
-	return err
+	fields := map[string]interface{}{
+		"title":       event.Title,
+		"description": event.Description,
+		"recurrence":  event.Recurrence,
+	}
+
+	return r.base.Update(event.ID, fields)
 }
 
 // Delete 删除event记录
 func (r *eventRepo) Delete(id string) error {
-	_, err := r.db.Exec("DELETE FROM events WHERE id = ?", id)
-	return err
+	return r.base.Delete(id)
 }

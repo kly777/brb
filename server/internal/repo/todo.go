@@ -8,7 +8,7 @@ import (
 )
 
 type todoRepo struct {
-	db *sql.DB
+	base *BaseRepo[entity.Todo]
 }
 
 func NewTodoRepo(db *sql.DB) (*todoRepo, error) {
@@ -28,48 +28,34 @@ func NewTodoRepo(db *sql.DB) (*todoRepo, error) {
 		return nil, fmt.Errorf("failed to create todos table: %w", err)
 	}
 
-	return &todoRepo{db: db}, nil
+	baseRepo := NewBaseRepo[entity.Todo](db, "todos")
+	return &todoRepo{base: baseRepo}, nil
 }
 
 // Create 创建新的todo记录
 func (r *todoRepo) Create(todo *entity.Todo) error {
-	_, err := r.db.Exec(
-		"INSERT INTO todos (id, task_id, status, priority, completed_time, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		todo.ID, todo.TaskID, todo.Status, todo.Priority, todo.CompletedTime, todo.StartTime, todo.EndTime,
-	)
+	fields := map[string]interface{}{
+		"id":             todo.ID,
+		"task_id":        todo.TaskID,
+		"status":         todo.Status,
+		"priority":       todo.Priority,
+		"completed_time": todo.CompletedTime,
+		"start_time":     todo.StartTime,
+		"end_time":       todo.EndTime,
+	}
+
+	_, err := r.base.Create(fields)
 	return err
 }
 
 // GetAll 获取所有todo记录
 func (r *todoRepo) GetAll() ([]*entity.Todo, error) {
-	rows, err := r.db.Query("SELECT id, task_id, status, priority, completed_time, start_time, end_time FROM todos")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var todos []*entity.Todo
-	for rows.Next() {
-		todo := &entity.Todo{}
-		if err := rows.Scan(&todo.ID, &todo.TaskID, &todo.Status, &todo.Priority, &todo.CompletedTime, &todo.StartTime, &todo.EndTime); err != nil {
-			return nil, err
-		}
-		todos = append(todos, todo)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return todos, nil
+	return r.base.FindAll()
 }
 
 // GetByID 根据ID获取todo
 func (r *todoRepo) GetByID(id string) (*entity.Todo, error) {
-	todo := &entity.Todo{}
-	err := r.db.QueryRow(
-		"SELECT id, task_id, status, priority, completed_time, start_time, end_time FROM todos WHERE id = ?",
-		id,
-	).Scan(&todo.ID, &todo.TaskID, &todo.Status, &todo.Priority, &todo.CompletedTime, &todo.StartTime, &todo.EndTime)
-
+	todo, err := r.base.FindByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("todo not found")
@@ -81,21 +67,26 @@ func (r *todoRepo) GetByID(id string) (*entity.Todo, error) {
 
 // Update 更新todo记录
 func (r *todoRepo) Update(todo *entity.Todo) error {
-	_, err := r.db.Exec(
-		"UPDATE todos SET task_id = ?, status = ?, priority = ?, completed_time = ?, start_time = ?, end_time = ? WHERE id = ?",
-		todo.TaskID, todo.Status, todo.Priority, todo.CompletedTime, todo.StartTime, todo.EndTime, todo.ID,
-	)
-	return err
+	fields := map[string]interface{}{
+		"task_id":        todo.TaskID,
+		"status":         todo.Status,
+		"priority":       todo.Priority,
+		"completed_time": todo.CompletedTime,
+		"start_time":     todo.StartTime,
+		"end_time":       todo.EndTime,
+	}
+
+	return r.base.Update(todo.ID, fields)
 }
 
 // Delete 删除todo记录
 func (r *todoRepo) Delete(id string) error {
-	_, err := r.db.Exec("DELETE FROM todos WHERE id = ?", id)
-	return err
+	return r.base.Delete(id)
 }
 
 // DeleteByTaskID 根据taskID删除所有相关的todos
 func (r *todoRepo) DeleteByTaskID(taskID string) error {
-	_, err := r.db.Exec("DELETE FROM todos WHERE task_id = ?", taskID)
+	query := "DELETE FROM todos WHERE task_id = ?"
+	_, err := r.base.db.Exec(query, taskID)
 	return err
 }

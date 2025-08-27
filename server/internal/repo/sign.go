@@ -8,9 +8,8 @@ import (
 )
 
 type signRepo struct {
-	db *sql.DB
+	base *BaseRepo[entity.Sign]
 }
-
 
 func NewSignRepo(db *sql.DB) (*signRepo, error) {
 	// 初始化数据库表
@@ -25,20 +24,23 @@ func NewSignRepo(db *sql.DB) (*signRepo, error) {
 		return nil, fmt.Errorf("failed to create signs table: %w", err)
 	}
 
-	return &signRepo{db: db}, nil
+	baseRepo := NewBaseRepo[entity.Sign](db, "signs")
+	return &signRepo{base: baseRepo}, nil
 }
 
 // Create 创建新的sign记录
 func (r *signRepo) Create(sign *entity.Sign) error {
-	res, err := r.db.Exec(
-		"INSERT INTO signs (signifier, signified) VALUES (?, ?)",
-		sign.Signifier, sign.Signified,
-	)
+	fields := map[string]interface{}{
+		"signifier": sign.Signifier,
+		"signified": sign.Signified,
+	}
+
+	result, err := r.base.Create(fields)
 	if err != nil {
 		return err
 	}
 
-	id, err := res.LastInsertId()
+	id, err := result.LastInsertId()
 	if err != nil {
 		return err
 	}
@@ -48,12 +50,7 @@ func (r *signRepo) Create(sign *entity.Sign) error {
 
 // GetByID 根据ID获取sign
 func (r *signRepo) GetByID(id int64) (*entity.Sign, error) {
-	sign := &entity.Sign{}
-	err := r.db.QueryRow(
-		"SELECT id, signifier, signified FROM signs WHERE id = ?",
-		id,
-	).Scan(&sign.ID, &sign.Signifier, &sign.Signified)
-
+	sign, err := r.base.FindByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("sign not found")
@@ -65,15 +62,15 @@ func (r *signRepo) GetByID(id int64) (*entity.Sign, error) {
 
 // Update 更新sign记录
 func (r *signRepo) Update(sign *entity.Sign) error {
-	_, err := r.db.Exec(
-		"UPDATE signs SET signifier = ?, signified = ? WHERE id = ?",
-		sign.Signifier, sign.Signified, sign.ID,
-	)
-	return err
+	fields := map[string]interface{}{
+		"signifier": sign.Signifier,
+		"signified": sign.Signified,
+	}
+
+	return r.base.Update(sign.ID, fields)
 }
 
 // Delete 删除sign记录
 func (r *signRepo) Delete(id int64) error {
-	_, err := r.db.Exec("DELETE FROM signs WHERE id = ?", id)
-	return err
+	return r.base.Delete(id)
 }
