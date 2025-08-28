@@ -3,12 +3,8 @@ package app
 import (
 	"database/sql"
 	"fmt"
-	"html/template"
-	"io"
-	"maps"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"brb/internal/handler"
@@ -97,36 +93,28 @@ func (a *App) Run(addr string) error {
 	// 创建反向代理到前端开发服务器
 	target, _ := url.Parse("http://localhost:5173")
 
-	// 添加CORS中间件和代理逻辑
-	proxyMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 设置CORS头
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	// 使用中间件处理器
+	proxyHandler := CreateProxyHandler(a.Mux, target)
+	loggingHandler := CreateLoggingDivider(proxyHandler)
 
-		// 处理预检请求
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		// 如果是API请求，由Mux处理
-		if strings.HasPrefix(r.URL.Path, "/api/") {
-			a.Mux.ServeHTTP(w, r)
-			return
-		}
-
-		// 否则，代理到前端开发服务器
-		logger.Info.Printf("请求前端: %s\n", r.URL.Path)
-		a.fetchAndServeHTML(w, r, target)
-	})
+	// 创建自定义的 HTTP 服务器配置
+	server := &http.Server{
+		Addr:    addr,
+		Handler: loggingHandler,
+		// 设置合理的超时时间
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 
 	logger.Info.Printf("服务器运行在 %s\n", addr)
 	defer func() {
+		a.Close()
 		logger.Info.Println("服务器已关闭")
 	}()
-	time.Sleep(3 * time.Second)
-	return http.ListenAndServe(addr, proxyMux)
+
+	// 启动服务器
+	return server.ListenAndServe()
 }
 
 // Close 关闭应用程序资源
@@ -135,75 +123,4 @@ func (a *App) Close() error {
 		return a.DB.Close()
 	}
 	return nil
-}
-
-// fetchAndServeHTML 获取HTML内容并处理
-func (a *App) fetchAndServeHTML(w http.ResponseWriter, r *http.Request, targetURL *url.URL) {
-	// 构造目标请求
-	proxyReq, err := http.NewRequest(r.Method, targetURL.ResolveReference(r.URL).String(), r.Body)
-	if err != nil {
-		logger.Error.Printf("Error constructing request: %v", err)
-		http.Error(w, "Failed to construct request", http.StatusInternalServerError)
-		return
-	}
-
-	// 复制请求头
-	proxyReq.Header = make(http.Header)
-	maps.Copy(proxyReq.Header, r.Header)
-
-	// 发送请求
-	client := &http.Client{}
-	resp, err := client.Do(proxyReq)
-	if err != nil {
-		logger.Error.Printf("Error fetching HTML: %v", err)
-		http.Error(w, "Failed to fetch HTML", http.StatusBadGateway)
-		return
-	}
-	defer resp.Body.Close()
-
-	// 读取响应体
-	body, err := io.ReadAll(resp.Body)
-	logger.Info.Printf("Fetched content: %s", string(body[:100]))
-	if err != nil {
-		http.Error(w, "Failed to read response body", http.StatusInternalServerError)
-		return
-	}
-
-	// 检查 Content-Type 是否为 HTML
-	contentType := resp.Header.Get("Content-Type")
-	if !strings.HasPrefix(contentType, "text/html") {
-		logger.Info.Printf("Non-HTML content type: %s", contentType)
-		// 非 HTML 内容，直接返回原始响应
-		// 复制原始响应头
-		for k, v := range resp.Header {
-			for _, vv := range v {
-				w.Header().Add(k, vv)
-			}
-		}
-
-		w.Header().Set("Content-Type", contentType)
-		logger.Info.Println("contentType", w.Header().Get("Content-Type"))
-		w.WriteHeader(resp.StatusCode)
-		w.Write(body)
-		return
-	}
-
-	// 解析HTML模板
-	tmpl, err := template.New("frontend").Parse(string(body))
-	if err != nil {
-		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
-		return
-	}
-
-	// 准备模板数据（示例数据）
-	data := struct {
-		Title string
-	}{
-		Title: "GO Title",
-	}
-
-	// 执行模板并写入响应
-	if err := tmpl.Execute(w, data); err != nil {
-		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
-	}
 }

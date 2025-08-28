@@ -13,7 +13,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize application: %v", err)
 	}
-	defer app.Close()
 
 	// 启动HTTP服务器
 	log.Fatal(app.Run(":8080"))
