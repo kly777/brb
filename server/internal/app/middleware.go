@@ -1,14 +1,14 @@
 package app
 
 import (
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
-	"text/template"
 
-	"maps"
 	"brb/pkg/logger"
+	"maps"
 )
 
 // Middleware 中间件函数类型
@@ -48,6 +48,7 @@ func CreateProxyHandler(mux *http.ServeMux, targetURL *url.URL) http.Handler {
 
 		// 如果是API请求，由Mux处理
 		if isAPIRequest(r) {
+			logger.Info.Println("API请求:", r.URL.Path)
 			mux.ServeHTTP(w, r)
 			return
 		}

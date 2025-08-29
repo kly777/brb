@@ -15,13 +15,15 @@ func NewTodoRepo(db *sql.DB) (*todoRepo, error) {
 	// 初始化数据库表
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS todos (
-			id TEXT PRIMARY KEY,
-			task_id TEXT NOT NULL,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			event_id INTEGER,
+			task_id INTEGER NOT NULL,
 			status TEXT NOT NULL,
-			priority INTEGER NOT NULL,
-			completed_time DATETIME,
-			start_time DATETIME NOT NULL,
-			end_time DATETIME NOT NULL
+			planned_start DATETIME,
+			planned_end DATETIME,
+			actual_start DATETIME,
+			actual_end DATETIME,
+			completed_time DATETIME
 		)
 	`)
 	if err != nil {
@@ -35,13 +37,31 @@ func NewTodoRepo(db *sql.DB) (*todoRepo, error) {
 // Create 创建新的todo记录
 func (r *todoRepo) Create(todo *entity.Todo) error {
 	fields := map[string]interface{}{
-		"id":             todo.ID,
+		"event_id":       todo.EventID,
 		"task_id":        todo.TaskID,
-		"status":         todo.Status,
-		"priority":       todo.Priority,
+		"status":         string(todo.Status),
 		"completed_time": todo.CompletedTime,
-		"start_time":     todo.StartTime,
-		"end_time":       todo.EndTime,
+	}
+
+	// 处理计划时间
+	if todo.PlannedTime.Start != nil {
+		fields["planned_start"] = todo.PlannedTime.Start
+	}
+	if todo.PlannedTime.End != nil {
+		fields["planned_end"] = todo.PlannedTime.End
+	}
+
+	// 处理实际时间
+	if todo.ActualTime.Start != nil {
+		fields["actual_start"] = todo.ActualTime.Start
+	}
+	if todo.ActualTime.End != nil {
+		fields["actual_end"] = todo.ActualTime.End
+	}
+
+	// If ID is set (for updates), include it, otherwise it will be auto-generated
+	if todo.ID != 0 {
+		fields["id"] = todo.ID
 	}
 
 	_, err := r.base.Create(fields)
@@ -54,7 +74,7 @@ func (r *todoRepo) GetAll() ([]*entity.Todo, error) {
 }
 
 // GetByID 根据ID获取todo
-func (r *todoRepo) GetByID(id string) (*entity.Todo, error) {
+func (r *todoRepo) GetByID(id uint) (*entity.Todo, error) {
 	todo, err := r.base.FindByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -68,24 +88,38 @@ func (r *todoRepo) GetByID(id string) (*entity.Todo, error) {
 // Update 更新todo记录
 func (r *todoRepo) Update(todo *entity.Todo) error {
 	fields := map[string]interface{}{
+		"event_id":       todo.EventID,
 		"task_id":        todo.TaskID,
-		"status":         todo.Status,
-		"priority":       todo.Priority,
+		"status":         string(todo.Status),
 		"completed_time": todo.CompletedTime,
-		"start_time":     todo.StartTime,
-		"end_time":       todo.EndTime,
+	}
+
+	// 处理计划时间
+	if todo.PlannedTime.Start != nil {
+		fields["planned_start"] = todo.PlannedTime.Start
+	}
+	if todo.PlannedTime.End != nil {
+		fields["planned_end"] = todo.PlannedTime.End
+	}
+
+	// 处理实际时间
+	if todo.ActualTime.Start != nil {
+		fields["actual_start"] = todo.ActualTime.Start
+	}
+	if todo.ActualTime.End != nil {
+		fields["actual_end"] = todo.ActualTime.End
 	}
 
 	return r.base.Update(todo.ID, fields)
 }
 
 // Delete 删除todo记录
-func (r *todoRepo) Delete(id string) error {
+func (r *todoRepo) Delete(id uint) error {
 	return r.base.Delete(id)
 }
 
 // DeleteByTaskID 根据taskID删除所有相关的todos
-func (r *todoRepo) DeleteByTaskID(taskID string) error {
+func (r *todoRepo) DeleteByTaskID(taskID uint) error {
 	query := "DELETE FROM todos WHERE task_id = ?"
 	_, err := r.base.db.Exec(query, taskID)
 	return err

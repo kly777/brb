@@ -13,11 +13,11 @@ type taskService struct {
 
 type taskRepository interface {
 	Create(task *entity.Task) error
-	HaveID(id string) bool
-	GetByID(id string) (*entity.Task, error)
+	HaveID(id uint) bool
+	GetByID(id uint) (*entity.Task, error)
 	Update(task *entity.Task) error
-	Delete(id string) error
-	DeleteByEventID(eventID string) error
+	Delete(id uint) error
+	DeleteByEventID(eventID uint) error
 }
 
 // NewTaskService 创建新的TaskService实例
@@ -34,7 +34,7 @@ func (s *taskService) CreateTask(task *entity.Task) error {
 }
 
 // GetTaskByID 根据ID获取task
-func (s *taskService) GetTaskByID(id string) (*entity.Task, error) {
+func (s *taskService) GetTaskByID(id uint) (*entity.Task, error) {
 	return s.taskRepo.GetByID(id)
 }
 
@@ -44,7 +44,7 @@ func (s *taskService) UpdateTask(task *entity.Task) error {
 }
 
 // DeleteTask 删除task，并级联删除相关的todos
-func (s *taskService) DeleteTask(id string) error {
+func (s *taskService) DeleteTask(id uint) error {
 	// 先删除所有相关的todos
 	err := s.todoRepo.DeleteByTaskID(id)
 	if err != nil {

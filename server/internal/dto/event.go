@@ -4,42 +4,57 @@ import "brb/internal/entity"
 
 // EventCreateRequest DTO for creating an event
 type EventCreateRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Recurrence  string `json:"recurrence"`
+	IsTemplate  bool   `json:"isTemplate" form:"isTemplate"`
+	Title       string `json:"title" form:"title"`
+	Description string `json:"description" form:"description"`
+	Location    string `json:"location" form:"location"`
+	Priority    int    `json:"priority" form:"priority"`
+	Category    string `json:"category" form:"category"`
 }
 
 // EventUpdateRequest DTO for updating an event
 type EventUpdateRequest struct {
+	IsTemplate  bool   `json:"isTemplate"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	Recurrence  string `json:"recurrence"`
+	Location    string `json:"location"`
+	Priority    int    `json:"priority"`
+	Category    string `json:"category"`
 }
 
-// 用于响应的EventResponse dto
+// EventResponse DTO for event responses
 type EventResponse struct {
-	ID          string `json:"id"`
+	ID          uint   `json:"id"`
+	IsTemplate  bool   `json:"isTemplate"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	Recurrence  string `json:"recurrence"`
+	Location    string `json:"location"`
+	Priority    int    `json:"priority"`
+	Category    string `json:"category"`
 }
 
 // ToEntity converts EventCreateRequest to entity.Event
 func (req *EventCreateRequest) ToEntity() *entity.Event {
 	return &entity.Event{
+		IsTemplate:  req.IsTemplate,
 		Title:       req.Title,
 		Description: req.Description,
-		Recurrence:  req.Recurrence,
+		Location:    req.Location,
+		Priority:    req.Priority,
+		Category:    req.Category,
 	}
 }
 
 // ToEntity converts EventUpdateRequest to entity.Event
-func (req *EventUpdateRequest) ToEntity(id string) *entity.Event {
+func (req *EventUpdateRequest) ToEntity(id uint) *entity.Event {
 	return &entity.Event{
 		ID:          id,
+		IsTemplate:  req.IsTemplate,
 		Title:       req.Title,
 		Description: req.Description,
-		Recurrence:  req.Recurrence,
+		Location:    req.Location,
+		Priority:    req.Priority,
+		Category:    req.Category,
 	}
 }
 
@@ -47,9 +62,12 @@ func (req *EventUpdateRequest) ToEntity(id string) *entity.Event {
 func FromEventEntity(event *entity.Event) *EventResponse {
 	return &EventResponse{
 		ID:          event.ID,
+		IsTemplate:  event.IsTemplate,
 		Title:       event.Title,
 		Description: event.Description,
-		Recurrence:  event.Recurrence,
+		Location:    event.Location,
+		Priority:    event.Priority,
+		Category:    event.Category,
 	}
 }
 

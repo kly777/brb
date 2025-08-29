@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"brb/internal/dto"
@@ -15,9 +16,9 @@ type eventHandler struct {
 
 type eventService interface {
 	CreateEvent(event *entity.Event) error
-	GetEventByID(id string) (*entity.Event, error)
+	GetEventByID(id uint) (*entity.Event, error)
 	UpdateEvent(event *entity.Event) error
-	DeleteEvent(id string) error
+	DeleteEvent(id uint) error
 }
 
 // NewEventHandler 创建新的EventHandler
@@ -47,9 +48,15 @@ func (h *eventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 // GetEvent 获取单个event
 func (h *eventHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -66,9 +73,15 @@ func (h *eventHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 
 // UpdateEvent 更新event
 func (h *eventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -89,9 +102,15 @@ func (h *eventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 // DeleteEvent 删除event
 func (h *eventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 

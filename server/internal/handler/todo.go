@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"brb/internal/dto"
 	"brb/internal/entity"
@@ -17,9 +19,9 @@ type todoHandler struct {
 type TodoService interface {
 	CreateTodo(todo *entity.Todo) error
 	GetAllTodo() ([]*entity.Todo, error)
-	GetTodoByID(id string) (*entity.Todo, error)
+	GetTodoByID(id uint) (*entity.Todo, error)
 	UpdateTodo(todo *entity.Todo) error
-	DeleteTodo(id string) error
+	DeleteTodo(id uint) error
 }
 
 // NewTodoHandler 创建新的TodoHandler
@@ -30,10 +32,34 @@ func NewTodoHandler(todoService TodoService) *todoHandler {
 // CreateTodo 创建新todo
 func (h *todoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	var req dto.TodoCreateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
-		return
+	contentType := r.Header.Get("Content-Type")
+
+	if contentType == "application/json" {
+		// 处理JSON请求
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else {
+		// 处理表单数据
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Invalid form data: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// 映射表单字段到请求结构
+		if taskIdStr := r.FormValue("taskId"); taskIdStr != "" {
+			if taskId, err := strconv.ParseUint(taskIdStr, 10, 32); err == nil {
+				req.TaskID = uint(taskId)
+			}
+		}
+		req.Status = r.FormValue("status")
+		req.PlannedStart = r.FormValue("plannedStart")
+		req.PlannedEnd = r.FormValue("plannedEnd")
+		req.ActualStart = r.FormValue("actualStart")
+		req.ActualEnd = r.FormValue("actualEnd")
 	}
+
 	logger.Tip.Println("Received CreateTodo request:", req)
 
 	todo := req.ToEntity()
@@ -63,12 +89,18 @@ func (h *todoHandler) GetAllTodo(w http.ResponseWriter, r *http.Request) {
 
 // GetTodo 获取单个todo
 func (h *todoHandler) GetTodo(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	logger.Tip.Println("Received GetTodo request for ID:", id)
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+	logger.Tip.Println("Received GetTodo request for ID:", id)
 
 	todo, err := h.todoService.GetTodoByID(id)
 	if err != nil {
@@ -83,9 +115,15 @@ func (h *todoHandler) GetTodo(w http.ResponseWriter, r *http.Request) {
 
 // UpdateTodo 更新todo
 func (h *todoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 	logger.Tip.Println("Received UpdateTodo request for ID:", id)
@@ -109,9 +147,15 @@ func (h *todoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 // DeleteTodo 删除todo
 func (h *todoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 

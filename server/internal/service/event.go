@@ -13,9 +13,9 @@ type eventService struct {
 
 type eventRepository interface {
 	Create(event *entity.Event) error
-	GetByID(id string) (*entity.Event, error)
+	GetByID(id uint) (*entity.Event, error)
 	Update(event *entity.Event) error
-	Delete(id string) error
+	Delete(id uint) error
 }
 
 // NewEventService 创建新的EventService实例
@@ -32,7 +32,7 @@ func (s *eventService) CreateEvent(event *entity.Event) error {
 }
 
 // GetEventByID 根据ID获取event
-func (s *eventService) GetEventByID(id string) (*entity.Event, error) {
+func (s *eventService) GetEventByID(id uint) (*entity.Event, error) {
 	return s.eventRepo.GetByID(id)
 }
 
@@ -42,7 +42,7 @@ func (s *eventService) UpdateEvent(event *entity.Event) error {
 }
 
 // DeleteEvent 删除event，并级联删除相关的tasks
-func (s *eventService) DeleteEvent(id string) error {
+func (s *eventService) DeleteEvent(id uint) error {
 	// 先删除所有相关的tasks
 	err := s.taskRepo.DeleteByEventID(id)
 	if err != nil {

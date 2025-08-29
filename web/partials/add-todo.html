@@ -1,0 +1,52 @@
+<div class="todo-form">
+    <h2>Add New TODO</h2>
+    <form hx-post="/api/todos" hx-target="#content" hx-swap="innerHTML">
+        <div class="form-group">
+            <label for="eventId">Event ID (optional):</label>
+            <input type="number" id="eventId" name="eventId" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="taskId">Task ID:</label>
+            <input type="number" id="taskId" name="taskId" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status:</label>
+            <select id="status" name="status">
+                <option value="pending" selected>Pending</option>
+                <option value="doing">Doing</option>
+                <option value="done">Done</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+
+        <div class="time-group">
+            <h3>Planned Time</h3>
+            <div class="form-group">
+                <label for="plannedStart">Planned Start:</label>
+                <input type="datetime-local" id="plannedStart" name="plannedStart">
+            </div>
+
+            <div class="form-group">
+                <label for="plannedEnd">Planned End:</label>
+                <input type="datetime-local" id="plannedEnd" name="plannedEnd">
+            </div>
+        </div>
+
+        <div class="time-group">
+            <h3>Actual Time (optional)</h3>
+            <div class="form-group">
+                <label for="actualStart">Actual Start:</label>
+                <input type="datetime-local" id="actualStart" name="actualStart">
+            </div>
+
+            <div class="form-group">
+                <label for="actualEnd">Actual End:</label>
+                <input type="datetime-local" id="actualEnd" name="actualEnd">
+            </div>
+        </div>
+
+        <button type="submit" class="btn">Add TODO</button>
+    </form>
+</div>

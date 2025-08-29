@@ -14,10 +14,10 @@ type todoService struct {
 type todoRepository interface {
 	Create(todo *entity.Todo) error
 	GetAll() ([]*entity.Todo, error)
-	GetByID(id string) (*entity.Todo, error)
+	GetByID(id uint) (*entity.Todo, error)
 	Update(todo *entity.Todo) error
-	Delete(id string) error
-	DeleteByTaskID(taskID string) error
+	Delete(id uint) error
+	DeleteByTaskID(taskID uint) error
 }
 
 // NewTodoService 创建新的TodoService实例
@@ -31,32 +31,51 @@ func NewTodoService(todoRepo todoRepository, taskRepo taskRepository) *todoServi
 // CreateTodo 创建新的todo
 func (s *todoService) CreateTodo(todo *entity.Todo) error {
 	// 检查关联的Task是否存在
-	if !s.taskRepo.HaveID(todo.TaskID)|| todo.TaskID=="" {
+	if !s.taskRepo.HaveID(todo.TaskID) {
 		return fmt.Errorf("关联的Task不存在")
 	}
 
 	// 验证Todo时间范围是否在Task的时间范围内
 	task, err := s.taskRepo.GetByID(todo.TaskID)
 	if err != nil {
-		return fmt.Errorf("failed to get task %s: %w", todo.TaskID, err)
+		return fmt.Errorf("failed to get task %d: %w", todo.TaskID, err)
 	}
 
-	// 检查时间是否为nil，如果为nil则跳过时间验证
-	if todo.StartTime != nil && task.StartTime != nil && task.EndTime != nil {
-		if todo.StartTime.Before(*task.StartTime) || todo.StartTime.After(*task.EndTime) {
-			return fmt.Errorf("todo start time must be within task time range")
+	// 检查计划时间是否在任务时间范围内
+	if todo.PlannedTime.Start != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.PlannedTime.Start.Before(*task.PlannedDuration.Start) || todo.PlannedTime.Start.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo planned start time must be within task time range")
 		}
 	}
 
-	if todo.EndTime != nil && task.StartTime != nil && task.EndTime != nil {
-		if todo.EndTime.Before(*task.StartTime) || todo.EndTime.After(*task.EndTime) {
-			return fmt.Errorf("todo end time must be within task time range")
+	if todo.PlannedTime.End != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.PlannedTime.End.Before(*task.PlannedDuration.Start) || todo.PlannedTime.End.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo planned end time must be within task time range")
 		}
 	}
 
-	if todo.StartTime != nil && todo.EndTime != nil {
-		if todo.EndTime.Before(*todo.StartTime) {
-			return fmt.Errorf("todo end time cannot be before start time")
+	if todo.PlannedTime.Start != nil && todo.PlannedTime.End != nil {
+		if todo.PlannedTime.End.Before(*todo.PlannedTime.Start) {
+			return fmt.Errorf("todo planned end time cannot be before start time")
+		}
+	}
+
+	// 检查实际时间是否在任务时间范围内
+	if todo.ActualTime.Start != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.ActualTime.Start.Before(*task.PlannedDuration.Start) || todo.ActualTime.Start.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo actual start time must be within task time range")
+		}
+	}
+
+	if todo.ActualTime.End != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.ActualTime.End.Before(*task.PlannedDuration.Start) || todo.ActualTime.End.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo actual end time must be within task time range")
+		}
+	}
+
+	if todo.ActualTime.Start != nil && todo.ActualTime.End != nil {
+		if todo.ActualTime.End.Before(*todo.ActualTime.Start) {
+			return fmt.Errorf("todo actual end time cannot be before start time")
 		}
 	}
 
@@ -69,7 +88,7 @@ func (s *todoService) GetAllTodo() ([]*entity.Todo, error) {
 }
 
 // GetTodoByID 根据ID获取todo
-func (s *todoService) GetTodoByID(id string) (*entity.Todo, error) {
+func (s *todoService) GetTodoByID(id uint) (*entity.Todo, error) {
 	return s.todoRepo.GetByID(id)
 }
 
@@ -78,25 +97,44 @@ func (s *todoService) UpdateTodo(todo *entity.Todo) error {
 	// 验证Todo时间范围是否在Task的时间范围内
 	task, err := s.taskRepo.GetByID(todo.TaskID)
 	if err != nil {
-		return fmt.Errorf("failed to get task: %w", err)
+		return fmt.Errorf("failed to get task %d: %w", todo.TaskID, err)
 	}
 
-	// 检查时间是否为nil，如果为nil则跳过时间验证
-	if todo.StartTime != nil && task.StartTime != nil && task.EndTime != nil {
-		if todo.StartTime.Before(*task.StartTime) || todo.StartTime.After(*task.EndTime) {
-			return fmt.Errorf("todo start time must be within task time range")
+	// 检查计划时间是否在任务时间范围内
+	if todo.PlannedTime.Start != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.PlannedTime.Start.Before(*task.PlannedDuration.Start) || todo.PlannedTime.Start.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo planned start time must be within task time range")
 		}
 	}
 
-	if todo.EndTime != nil && task.StartTime != nil && task.EndTime != nil {
-		if todo.EndTime.Before(*task.StartTime) || todo.EndTime.After(*task.EndTime) {
-			return fmt.Errorf("todo end time must be within task time range")
+	if todo.PlannedTime.End != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.PlannedTime.End.Before(*task.PlannedDuration.Start) || todo.PlannedTime.End.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo planned end time must be within task time range")
 		}
 	}
 
-	if todo.StartTime != nil && todo.EndTime != nil {
-		if todo.EndTime.Before(*todo.StartTime) {
-			return fmt.Errorf("todo end time cannot be before start time")
+	if todo.PlannedTime.Start != nil && todo.PlannedTime.End != nil {
+		if todo.PlannedTime.End.Before(*todo.PlannedTime.Start) {
+			return fmt.Errorf("todo planned end time cannot be before start time")
+		}
+	}
+
+	// 检查实际时间是否在任务时间范围内
+	if todo.ActualTime.Start != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.ActualTime.Start.Before(*task.PlannedDuration.Start) || todo.ActualTime.Start.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo actual start time must be within task time range")
+		}
+	}
+
+	if todo.ActualTime.End != nil && task.PlannedDuration.Start != nil && task.PlannedDuration.End != nil {
+		if todo.ActualTime.End.Before(*task.PlannedDuration.Start) || todo.ActualTime.End.After(*task.PlannedDuration.End) {
+			return fmt.Errorf("todo actual end time must be within task time range")
+		}
+	}
+
+	if todo.ActualTime.Start != nil && todo.ActualTime.End != nil {
+		if todo.ActualTime.End.Before(*todo.ActualTime.Start) {
+			return fmt.Errorf("todo actual end time cannot be before start time")
 		}
 	}
 
@@ -104,6 +142,6 @@ func (s *todoService) UpdateTodo(todo *entity.Todo) error {
 }
 
 // DeleteTodo 删除todo
-func (s *todoService) DeleteTodo(id string) error {
+func (s *todoService) DeleteTodo(id uint) error {
 	return s.todoRepo.Delete(id)
 }

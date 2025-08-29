@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"brb/internal/dto"
@@ -15,9 +16,9 @@ type taskHandler struct {
 
 type TaskService interface {
 	CreateTask(task *entity.Task) error
-	GetTaskByID(id string) (*entity.Task, error)
+	GetTaskByID(id uint) (*entity.Task, error)
 	UpdateTask(task *entity.Task) error
-	DeleteTask(id string) error
+	DeleteTask(id uint) error
 }
 
 // NewTaskHandler 创建新的TaskHandler
@@ -47,9 +48,15 @@ func (h *taskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 // GetTask 获取单个task
 func (h *taskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -66,9 +73,15 @@ func (h *taskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 
 // UpdateTask 更新task
 func (h *taskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -89,9 +102,15 @@ func (h *taskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 // DeleteTask 删除task
 func (h *taskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idStr := r.PathValue("id")
+	if idStr == "" {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var id uint
+	if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
