@@ -93,7 +93,7 @@ func fetchAndServeHTML(w http.ResponseWriter, r *http.Request, targetURL *url.UR
 
 	// 读取响应体
 	body, err := io.ReadAll(resp.Body)
-	logger.Info.Printf("Fetched content: %s", string(body[:100]))
+	logger.Info.Printf("Fetched content: %s", string(body[:20]))
 	if err != nil {
 		http.Error(w, "Failed to read response body", http.StatusInternalServerError)
 		return
@@ -112,6 +112,7 @@ func fetchAndServeHTML(w http.ResponseWriter, r *http.Request, targetURL *url.UR
 		}
 		w.WriteHeader(resp.StatusCode)
 		w.Write(body)
+		logger.Info.Println("Returned non-HTML content directly")
 		return
 	}
 

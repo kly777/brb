@@ -10,7 +10,15 @@ export default defineConfig({
     cors: {
       // 通过浏览器访问的源
       origin: 'http://localhost:8080',
+      credentials: true,
     },
+    // 新增HMR配置
+    hmr: {
+      host: 'localhost',
+      port: 5173,
+      protocol: 'ws', // 使用WebSocket协议
+      clientPort: 5173 // 告诉Vite客户端使用8080端口
+    }
   },
   build: {
     // 在 outDir 中生成 .vite/manifest.json
@@ -18,7 +26,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'index.html'),
-        login: resolve(__dirname, 'login.html'),
+        login: resolve(__dirname, 'partials/login.html'),
       }
     }
   }
