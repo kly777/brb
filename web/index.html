@@ -1,41 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{.Title}}</title>
-  <link rel="stylesheet" href="./src/index.css" />
-  <script type="module" src="./src/my-element.ts"></script>
-  <script type="module" src="./main.ts"></script>
-</head>
-
-<body>
-  <!-- 导航栏 -->
-  <nav class="navbar">
-    <div class="navbar-brand">MyApp</div>
-    <ul class="nav-links">
-      <li>
-        <a hx-get="/partials/login" hx-target="#content" hx-swap="innerHTML" class="nav-link">Login</a>
-      </li>
-      <li>
-        <a hx-get="/partials/add-todo" hx-target="#content" hx-swap="innerHTML" class="nav-link">Add TODO</a>
-      </li>
-    </ul>
-  </nav>
-
-  <!-- 内容容器 -->
-  <main id="content">
-    <!-- 动态内容加载区域 -->
-    <div class="initial-content">
-      <my-element>
-        <h1>Vite + Lit</h1>
-      </my-element>
-    </div>
-  </main>
-
-
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Vue + TS</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

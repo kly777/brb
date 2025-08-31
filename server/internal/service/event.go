@@ -13,6 +13,7 @@ type eventService struct {
 
 type eventRepository interface {
 	Create(event *entity.Event) error
+	GetAll() ([]*entity.Event, error)
 	GetByID(id uint) (*entity.Event, error)
 	Update(event *entity.Event) error
 	Delete(id uint) error
@@ -30,6 +31,11 @@ func NewEventService(eventRepo eventRepository, taskRepo taskRepository) *eventS
 func (s *eventService) CreateEvent(event *entity.Event) error {
 	return s.eventRepo.Create(event)
 }
+// GetAllEvents 获取所有event
+func (s *eventService) GetAllEvents() ([]*entity.Event, error) {
+	return s.eventRepo.GetAll()
+}
+
 
 // GetEventByID 根据ID获取event
 func (s *eventService) GetEventByID(id uint) (*entity.Event, error) {

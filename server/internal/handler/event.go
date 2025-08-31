@@ -7,6 +7,7 @@ import (
 
 	"brb/internal/dto"
 	"brb/internal/entity"
+	"brb/pkg/logger"
 )
 
 // eventHandler 处理event相关的HTTP请求
@@ -16,6 +17,7 @@ type eventHandler struct {
 
 type eventService interface {
 	CreateEvent(event *entity.Event) error
+	GetAllEvents() ([]*entity.Event, error)
 	GetEventByID(id uint) (*entity.Event, error)
 	UpdateEvent(event *entity.Event) error
 	DeleteEvent(id uint) error
@@ -30,12 +32,14 @@ func NewEventHandler(eventService eventService) *eventHandler {
 func (h *eventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	var req dto.EventCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Tip.Println("Invalid request body:", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	event := req.ToEntity()
 	if err := h.eventService.CreateEvent(event); err != nil {
+		logger.Tip.Println("Failed to create event:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -43,6 +47,18 @@ func (h *eventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	response := dto.FromEventEntity(event)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetAllEvents 获取所有event
+func (h *eventHandler) GetAllEvents(w http.ResponseWriter, r *http.Request) {
+	events, err := h.eventService.GetAllEvents()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response := dto.FromEventEntities(events)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -125,6 +141,7 @@ func (h *eventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 // RegisterRoutes 注册event相关路由
 func (h *eventHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/events", h.CreateEvent)
+	mux.HandleFunc("GET /api/events", h.GetAllEvents)
 	mux.HandleFunc("GET /api/events/{id}", h.GetEvent)
 	mux.HandleFunc("PUT /api/events/{id}", h.UpdateEvent)
 	mux.HandleFunc("DELETE /api/events/{id}", h.DeleteEvent)

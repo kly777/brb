@@ -41,11 +41,11 @@ func NewTaskRepo(db *sql.DB) (*taskRepo, error) {
 // Create 创建新的task记录
 func (r *taskRepo) Create(task *entity.Task) error {
 	fields := map[string]interface{}{
-		"event_id":      task.EventID,
+		"event_id":       task.EventID,
 		"parent_task_id": task.ParentTaskID,
-		"description":   task.Description,
-		"status":        string(task.Status),
-		"created_at":    task.CreatedAt,
+		"description":    task.Description,
+		"status":         string(task.Status),
+		"created_at":     task.CreatedAt,
 	}
 
 	// 处理时间字段
@@ -68,7 +68,7 @@ func (r *taskRepo) Create(task *entity.Task) error {
 		// 在实际实现中可能需要使用json.Marshal
 		fields["pre_task_ids"] = "[]" // 临时占位符，需要实际实现
 	}
-	
+
 	// If ID is set (for updates), include it, otherwise it will be auto-generated
 	if task.ID != 0 {
 		fields["id"] = task.ID
@@ -88,6 +88,11 @@ func (r *taskRepo) HaveID(id uint) bool {
 	return exists
 }
 
+// GetAll 获取所有task
+func (r *taskRepo) GetAll() ([]*entity.Task, error) {
+	return r.base.FindAll()
+}
+
 // GetByID 根据ID获取task
 func (r *taskRepo) GetByID(id uint) (*entity.Task, error) {
 	task, err := r.base.FindByID(id)
@@ -102,11 +107,11 @@ func (r *taskRepo) GetByID(id uint) (*entity.Task, error) {
 
 // Update 更新task记录
 func (r *taskRepo) Update(task *entity.Task) error {
-	fields := map[string]interface{}{
-		"event_id":      task.EventID,
+	fields := map[string]any{
+		"event_id":       task.EventID,
 		"parent_task_id": task.ParentTaskID,
-		"description":   task.Description,
-		"status":        string(task.Status),
+		"description":    task.Description,
+		"status":         string(task.Status),
 	}
 
 	// 处理时间字段

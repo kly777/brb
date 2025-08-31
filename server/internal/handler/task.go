@@ -16,6 +16,7 @@ type taskHandler struct {
 
 type TaskService interface {
 	CreateTask(task *entity.Task) error
+	GetAllTasks() ([]*entity.Task, error)
 	GetTaskByID(id uint) (*entity.Task, error)
 	UpdateTask(task *entity.Task) error
 	DeleteTask(id uint) error
@@ -43,6 +44,18 @@ func (h *taskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	response := dto.FromTaskEntity(task)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetAllTasks 获取所有task
+func (h *taskHandler) GetAllTasks(w http.ResponseWriter, r *http.Request) {
+	tasks, err := h.taskService.GetAllTasks()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response := dto.FromTaskEntities(tasks)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -125,6 +138,7 @@ func (h *taskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 // RegisterRoutes 注册task相关路由
 func (h *taskHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/tasks", h.CreateTask)
+	mux.HandleFunc("GET /api/tasks", h.GetAllTasks)
 	mux.HandleFunc("GET /api/tasks/{id}", h.GetTask)
 	mux.HandleFunc("PUT /api/tasks/{id}", h.UpdateTask)
 	mux.HandleFunc("DELETE /api/tasks/{id}", h.DeleteTask)

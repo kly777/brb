@@ -14,6 +14,7 @@ type taskService struct {
 type taskRepository interface {
 	Create(task *entity.Task) error
 	HaveID(id uint) bool
+	GetAll() ([]*entity.Task, error)
 	GetByID(id uint) (*entity.Task, error)
 	Update(task *entity.Task) error
 	Delete(id uint) error
@@ -31,6 +32,11 @@ func NewTaskService(taskRepo taskRepository, todoRepo todoRepository) *taskServi
 // CreateTask 创建新的task
 func (s *taskService) CreateTask(task *entity.Task) error {
 	return s.taskRepo.Create(task)
+}
+
+// GetAllTasks 获取所有task
+func (s *taskService) GetAllTasks() ([]*entity.Task, error) {
+	return s.taskRepo.GetAll()
 }
 
 // GetTaskByID 根据ID获取task

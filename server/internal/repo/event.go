@@ -34,7 +34,7 @@ func NewEventRepo(db *sql.DB) (*eventRepo, error) {
 
 // Create 创建新的event记录
 func (r *eventRepo) Create(event *entity.Event) error {
-	fields := map[string]interface{}{
+	fields := map[string]any{
 		"isTemplate":  event.IsTemplate,
 		"title":       event.Title,
 		"description": event.Description,
@@ -42,7 +42,7 @@ func (r *eventRepo) Create(event *entity.Event) error {
 		"priority":    event.Priority,
 		"category":    event.Category,
 	}
-	
+
 	// If ID is set (for updates), include it, otherwise it will be auto-generated
 	if event.ID != 0 {
 		fields["id"] = event.ID
@@ -50,6 +50,11 @@ func (r *eventRepo) Create(event *entity.Event) error {
 
 	_, err := r.base.Create(fields)
 	return err
+}
+
+// GetAll 获取所有event
+func (r *eventRepo) GetAll() ([]*entity.Event, error) {
+	return r.base.FindAll()
 }
 
 // GetByID 根据ID获取event
@@ -66,7 +71,7 @@ func (r *eventRepo) GetByID(id uint) (*entity.Event, error) {
 
 // Update 更新event记录
 func (r *eventRepo) Update(event *entity.Event) error {
-	fields := map[string]interface{}{
+	fields := map[string]any{
 		"isTemplate":  event.IsTemplate,
 		"title":       event.Title,
 		"description": event.Description,
