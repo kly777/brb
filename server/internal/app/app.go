@@ -69,7 +69,7 @@ func (a *App) initDependencies() error {
 
 	// 初始化services
 	signService := service.NewSignService(signRepo)
-	todoService := service.NewTodoService(todoRepo, taskRepo)
+	todoService := service.NewTodoService(todoRepo, taskRepo, eventRepo)
 	taskService := service.NewTaskService(taskRepo, todoRepo)
 	eventService := service.NewEventService(eventRepo, taskRepo)
 

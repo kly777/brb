@@ -2,13 +2,15 @@ package service
 
 import (
 	"brb/internal/entity"
+	"brb/pkg/logger"
 	"fmt"
 )
 
 // todoService 实现handler.todoService接口
 type todoService struct {
-	todoRepo todoRepository
-	taskRepo taskRepository
+	todoRepo  todoRepository
+	taskRepo  taskRepository
+	eventRepo eventRepository
 }
 
 type todoRepository interface {
@@ -21,10 +23,11 @@ type todoRepository interface {
 }
 
 // NewTodoService 创建新的TodoService实例
-func NewTodoService(todoRepo todoRepository, taskRepo taskRepository) *todoService {
+func NewTodoService(todoRepo todoRepository, taskRepo taskRepository, eventRepo eventRepository) *todoService {
 	return &todoService{
-		todoRepo: todoRepo,
-		taskRepo: taskRepo,
+		todoRepo:  todoRepo,
+		taskRepo:  taskRepo,
+		eventRepo: eventRepo,
 	}
 }
 
@@ -95,6 +98,7 @@ func (s *todoService) GetTodoByID(id uint) (*entity.Todo, error) {
 // UpdateTodo 更新todo
 func (s *todoService) UpdateTodo(todo *entity.Todo) error {
 	// 验证Todo时间范围是否在Task的时间范围内
+	logger.Tip.Println("Checking todo...",todo)
 	task, err := s.taskRepo.GetByID(todo.TaskID)
 	if err != nil {
 		return fmt.Errorf("failed to get task %d: %w", todo.TaskID, err)
@@ -139,6 +143,32 @@ func (s *todoService) UpdateTodo(todo *entity.Todo) error {
 	}
 
 	return s.todoRepo.Update(todo)
+}
+
+// CreateTodoWithDetails 创建todo及其相关的task和event
+func (s *todoService) CreateTodoWithDetails(event *entity.Event, task *entity.Task, todo *entity.Todo) error {
+	// 首先创建event
+	if err := s.eventRepo.Create(event); err != nil {
+		return fmt.Errorf("failed to create event: %w", err)
+	}
+
+	// 设置task的event ID
+	task.EventID = event.ID
+
+	// 创建task
+	if err := s.taskRepo.Create(task); err != nil {
+		return fmt.Errorf("failed to create task: %w", err)
+	}
+
+	// 设置todo的task ID
+	todo.TaskID = task.ID
+
+	// 创建todo
+	if err := s.CreateTodo(todo); err != nil {
+		return fmt.Errorf("failed to create todo: %w", err)
+	}
+
+	return nil
 }
 
 // DeleteTodo 删除todo

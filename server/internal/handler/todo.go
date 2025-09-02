@@ -18,6 +18,7 @@ type todoHandler struct {
 
 type TodoService interface {
 	CreateTodo(todo *entity.Todo) error
+	CreateTodoWithDetails(event *entity.Event, task *entity.Task, todo *entity.Todo) error
 	GetAllTodo() ([]*entity.Todo, error)
 	GetTodoByID(id uint) (*entity.Todo, error)
 	UpdateTodo(todo *entity.Todo) error

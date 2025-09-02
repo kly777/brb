@@ -149,3 +149,29 @@ func parseTodoTimeSpan(startStr, endStr string) entity.TimeSpan {
 		End:   endTime,
 	}
 }
+
+// TodoWithDetailsCreateRequest DTO for creating a todo with task and event details
+type TodoWithDetailsCreateRequest struct {
+	// Event fields
+	EventIsTemplate  bool   `json:"eventIsTemplate" form:"eventIsTemplate"`
+	EventTitle       string `json:"eventTitle" form:"eventTitle"`
+	EventDescription string `json:"eventDescription" form:"eventDescription"`
+	EventLocation    string `json:"eventLocation" form:"eventLocation"`
+	EventPriority    int    `json:"eventPriority" form:"eventPriority"`
+	EventCategory    string `json:"eventCategory" form:"eventCategory"`
+
+	// Task fields
+	TaskDescription  string  `json:"taskDescription" form:"taskDescription"`
+	TaskAllowedStart *string `json:"taskAllowedStart" form:"taskAllowedStart"`
+	TaskAllowedEnd   *string `json:"taskAllowedEnd" form:"taskAllowedEnd"`
+	TaskPlannedStart *string `json:"taskPlannedStart" form:"taskPlannedStart"`
+	TaskPlannedEnd   *string `json:"taskPlannedEnd" form:"taskPlannedEnd"`
+	TaskStatus       string  `json:"taskStatus" form:"taskStatus"`
+
+	// Todo fields
+	TodoStatus       string `json:"todoStatus" form:"todoStatus"`
+	TodoPlannedStart string `json:"todoPlannedStart" form:"todoPlannedStart"`
+	TodoPlannedEnd   string `json:"todoPlannedEnd" form:"todoPlannedEnd"`
+	TodoActualStart  string `json:"todoActualStart" form:"todoActualStart"`
+	TodoActualEnd    string `json:"todoActualEnd" form:"todoActualEnd"`
+}

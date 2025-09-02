@@ -2,9 +2,6 @@
 import { get, post, put, del } from './api';
 import type { TodoCreateRequest, TodoUpdateRequest, TodoResponse } from './types';
 
-/**
- * Todo API 函数封装
- */
 
 /**
  * 创建新的todo

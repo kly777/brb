@@ -90,19 +90,106 @@ func (r *taskRepo) HaveID(id uint) bool {
 
 // GetAll 获取所有task
 func (r *taskRepo) GetAll() ([]*entity.Task, error) {
-	return r.base.FindAll()
+	query := "SELECT * FROM tasks"
+	rows, err := r.base.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*entity.Task
+	for rows.Next() {
+		task, err := r.scanTask(rows)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return tasks, nil
 }
 
 // GetByID 根据ID获取task
 func (r *taskRepo) GetByID(id uint) (*entity.Task, error) {
-	task, err := r.base.FindByID(id)
+	query := "SELECT * FROM tasks WHERE id = ?"
+	row := r.base.db.QueryRow(query, id)
+	return r.scanTask(row)
+}
+
+// scanTask 从数据库行扫描Task实体
+func (r *taskRepo) scanTask(row interface{}) (*entity.Task, error) {
+	var task entity.Task
+	var allowedStart, allowedEnd, plannedStart, plannedEnd sql.NullTime
+	var parentTaskID sql.NullInt64
+	var preTaskIDs sql.NullString
+
+	var err error
+	switch row := row.(type) {
+	case *sql.Row:
+		err = row.Scan(
+			&task.ID,
+			&task.EventID,
+			&parentTaskID,
+			&task.Description,
+			&allowedStart,
+			&allowedEnd,
+			&plannedStart,
+			&plannedEnd,
+			&task.Status,
+			&task.CreatedAt,
+			&preTaskIDs,
+		)
+	case *sql.Rows:
+		err = row.Scan(
+			&task.ID,
+			&task.EventID,
+			&parentTaskID,
+			&task.Description,
+			&allowedStart,
+			&allowedEnd,
+			&plannedStart,
+			&plannedEnd,
+			&task.Status,
+			&task.CreatedAt,
+			&preTaskIDs,
+		)
+	default:
+		return nil, fmt.Errorf("unsupported row type")
+	}
+
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("task not found")
-		}
 		return nil, err
 	}
-	return task, nil
+
+	// 处理父任务ID
+	if parentTaskID.Valid {
+		parentID := uint(parentTaskID.Int64)
+		task.ParentTaskID = &parentID
+	}
+
+	// 处理时间字段
+	if allowedStart.Valid {
+		task.AllowedTime.Start = &allowedStart.Time
+	}
+	if allowedEnd.Valid {
+		task.AllowedTime.End = &allowedEnd.Time
+	}
+	if plannedStart.Valid {
+		task.PlannedDuration.Start = &plannedStart.Time
+	}
+	if plannedEnd.Valid {
+		task.PlannedDuration.End = &plannedEnd.Time
+	}
+
+	// 处理前置任务ID（这里简化处理，实际可能需要JSON解析）
+	// 目前preTaskIDs字段在数据库中存储为JSON字符串，但这里我们先忽略具体解析
+	// 可以根据实际需要添加JSON解析逻辑
+	task.PreTaskIDs = []uint{} // 初始化为空切片
+
+	return &task, nil
 }
 
 // Update 更新task记录

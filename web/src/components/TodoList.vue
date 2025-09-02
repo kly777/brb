@@ -1,22 +1,16 @@
 <template>
   <div class="todo-list">
     <h2>Todo Management</h2>
-    
+
     <!-- Add Todo Form -->
     <div class="add-todo-form">
       <h3>Add New Todo</h3>
       <form @submit.prevent="addTodo">
         <div class="form-group">
           <label for="taskId">Task ID:</label>
-          <input
-            id="taskId"
-            v-model.number="newTodo.taskId"
-            type="number"
-            required
-            placeholder="Enter task ID"
-          />
+          <input id="taskId" v-model.number="newTodo.taskId" type="number" required placeholder="Enter task ID" />
         </div>
-        
+
         <div class="form-group">
           <label for="status">Status:</label>
           <select id="status" v-model="newTodo.status" required>
@@ -27,25 +21,17 @@
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
-        
+
         <div class="form-group">
           <label for="plannedStart">Planned Start (optional):</label>
-          <input
-            id="plannedStart"
-            v-model="newTodo.plannedStart"
-            type="datetime-local"
-          />
+          <input id="plannedStart" v-model="newTodo.plannedStart" type="datetime-local" />
         </div>
-        
+
         <div class="form-group">
           <label for="plannedEnd">Planned End (optional):</label>
-          <input
-            id="plannedEnd"
-            v-model="newTodo.plannedEnd"
-            type="datetime-local"
-          />
+          <input id="plannedEnd" v-model="newTodo.plannedEnd" type="datetime-local" />
         </div>
-        
+
         <button type="submit" :disabled="adding">Add Todo</button>
       </form>
     </div>
@@ -121,7 +107,7 @@ const addTodo = async () => {
   try {
     adding.value = true
     error.value = ''
-    
+
     const todoData: TodoCreateRequest = {
       taskId: newTodo.value.taskId,
       status: newTodo.value.status,
@@ -131,7 +117,7 @@ const addTodo = async () => {
 
     await createTodo(todoData)
     await fetchTodos() // Refresh the list
-    
+
     // Reset form
     newTodo.value = {
       taskId: null,
@@ -303,7 +289,9 @@ button:disabled {
   background: #c0392b;
 }
 
-.loading, .error, .empty {
+.loading,
+.error,
+.empty {
   text-align: center;
   padding: 20px;
   border-radius: 8px;
