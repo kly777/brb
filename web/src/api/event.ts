@@ -1,31 +1,18 @@
-import { get, post, put, del } from './api';
-import type { EventCreateRequest, EventUpdateRequest, EventResponse } from './types';
+import { del, get, put } from './api';
+import type { EventResponse, EventUpdateRequest } from './types';
 
 /**
- * Event API 函数封装
- */
-
-/**
- * 创建新的event
- * @param data - Event创建请求数据
- * @returns 创建的event响应
- */
-export function createEvent(data: EventCreateRequest): Promise<EventResponse> {
-  return post<EventResponse>('/events', data);
-}
-
-/**
- * 获取所有event
- * @returns event响应数组
+ * 获取所有事件
+ * @returns 事件响应数组
  */
 export function getAllEvents(): Promise<EventResponse[]> {
   return get<EventResponse[]>('/events');
 }
 
 /**
- * 根据ID获取单个event
- * @param id - event的ID
- * @returns event响应数据
+ * 根据ID获取单个事件
+ * @param id - 事件的ID
+ * @returns 事件响应数据
  */
 export function getEvent(id: number): Promise<EventResponse> {
   return get<EventResponse>(`/events/${id}`);
@@ -51,9 +38,6 @@ export function deleteEvent(id: number): Promise<void> {
 }
 
 export default {
-  createEvent,
   getAllEvents,
-  getEvent,
-  updateEvent,
-  deleteEvent,
+  getEvent
 };

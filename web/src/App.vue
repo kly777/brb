@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import TodoCalendar from './components/TodoCalendar.vue'
 import TodoList from './components/TodoList.vue'
+import EventTaskView from './components/EventTaskView.vue'
 </script>
 
 <template>
   <div class="app-content">
     <TodoList />
     <TodoCalendar />
+    <EventTaskView />
   </div>
 </template>
 
@@ -27,13 +29,13 @@ import TodoList from './components/TodoList.vue'
 }
 
 .app-content {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
 
 .app-content>* {
-  flex: 1;
   min-width: 0;
 }
 </style>

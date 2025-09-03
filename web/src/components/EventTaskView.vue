@@ -2,6 +2,9 @@
   <div class="event-task-view">
     <h2>Events and Tasks Management</h2>
 
+    <!-- Add Task Form -->
+    <AddTask @task-added="fetchTasks" />
+
     <!-- Events Section -->
     <div class="section">
       <h3>Events</h3>
@@ -14,6 +17,7 @@
             <h4>{{ event.title }}</h4>
             <p>{{ event.description }}</p>
             <div class="event-details">
+              <span class="id">ID: {{ event.id }}</span>
               <span class="location">Location: {{ event.location }}</span>
               <span class="priority">Priority: {{ event.priority }}</span>
               <span class="category">Category: {{ event.category }}</span>
@@ -47,6 +51,36 @@
               </div>
             </div>
           </div>
+          <div class="task-actions">
+            <button @click="showAddTodoForm(task.id)" class="add-todo-btn">
+              Add Todo
+            </button>
+            <div v-if="activeTodoForm === task.id" class="quick-todo-form">
+              <h5>Add Todo for Task #{{ task.id }}</h5>
+              <form @submit.prevent="addQuickTodo(task.id)">
+                <div class="form-group">
+                  <label>Status:</label>
+                  <select v-model="quickTodo.status" required>
+                    <option value="">Select status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Planned Start:</label>
+                  <input v-model="quickTodo.plannedStart" type="datetime-local" />
+                </div>
+                <div class="form-group">
+                  <label>Planned End:</label>
+                  <input v-model="quickTodo.plannedEnd" type="datetime-local" />
+                </div>
+                <button type="submit" :disabled="addingTodo">Add Todo</button>
+                <button type="button" @click="cancelAddTodo" class="cancel-btn">Cancel</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -57,7 +91,9 @@
 import { ref, onMounted } from 'vue'
 import { getAllEvents } from '../api/event'
 import { getAllTasks } from '../api/task'
-import type { EventResponse, TaskResponse } from '../api/types'
+import { createTodo } from '../api/todo'
+import type { EventResponse, TaskResponse, TodoCreateRequest } from '../api/types'
+import AddTask from './AddTask.vue'
 
 const events = ref<EventResponse[]>([])
 const tasks = ref<TaskResponse[]>([])
@@ -65,6 +101,15 @@ const eventsLoading = ref(false)
 const tasksLoading = ref(false)
 const eventsError = ref('')
 const tasksError = ref('')
+
+// Quick todo form state
+const activeTodoForm = ref<number | null>(null)
+const addingTodo = ref(false)
+const quickTodo = ref({
+  status: '',
+  plannedStart: '',
+  plannedEnd: ''
+})
 
 // Fetch events and tasks on mount
 onMounted(() => {
@@ -115,6 +160,54 @@ const formatTimeSpan = (timeSpan: { start?: string; end?: string }) => {
   const end = timeSpan.end ? new Date(timeSpan.end).toLocaleString('zh-CN') : 'Not set'
   
   return `${start} - ${end}`
+}
+
+// Show add todo form for a specific task
+const showAddTodoForm = (taskId: number) => {
+  activeTodoForm.value = taskId
+  quickTodo.value = {
+    status: '',
+    plannedStart: '',
+    plannedEnd: ''
+  }
+}
+
+// Cancel adding todo
+const cancelAddTodo = () => {
+  activeTodoForm.value = null
+}
+
+// Add quick todo for a specific task
+const addQuickTodo = async (taskId: number) => {
+  if (!quickTodo.value.status) {
+    return
+  }
+
+  try {
+    addingTodo.value = true
+    const todoData: TodoCreateRequest = {
+      taskId: taskId,
+      status: quickTodo.value.status,
+      plannedStart: quickTodo.value.plannedStart || undefined,
+      plannedEnd: quickTodo.value.plannedEnd || undefined
+    }
+
+    await createTodo(todoData)
+    activeTodoForm.value = null
+    quickTodo.value = {
+      status: '',
+      plannedStart: '',
+      plannedEnd: ''
+    }
+    
+    // Show success message or refresh todos if needed
+    alert('Todo added successfully!')
+  } catch (err) {
+    console.error('Error adding todo:', err)
+    alert('Failed to add todo')
+  } finally {
+    addingTodo.value = false
+  }
 }
 </script>
 
@@ -199,5 +292,73 @@ const formatTimeSpan = (timeSpan: { start?: string; end?: string }) => {
 .empty {
   background: #f5f5f5;
   color: #757575;
+}
+
+.task-actions {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.add-todo-btn {
+  padding: 8px 16px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.add-todo-btn:hover {
+  background: #219a52;
+}
+
+.quick-todo-form {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.quick-todo-form h5 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.quick-todo-form .form-group {
+  margin-bottom: 10px;
+}
+
+.quick-todo-form .form-group label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.quick-todo-form .form-group input,
+.quick-todo-form .form-group select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.quick-todo-form button {
+  padding: 6px 12px;
+  margin-right: 8px;
+  font-size: 13px;
+}
+
+.cancel-btn {
+  background: #95a5a6;
+}
+
+.cancel-btn:hover {
+  background: #7f8c8d;
 }
 </style>

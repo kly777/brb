@@ -1,31 +1,27 @@
-import { get, post, put, del } from './api';
-import type { TaskCreateRequest, TaskUpdateRequest, TaskResponse } from './types';
+import { del, get, post, put } from './api';
+import type { TaskResponse, TaskCreateRequest, TaskUpdateRequest } from './types';
 
 /**
- * Task API 函数封装
- */
-
-/**
- * 创建新的task
- * @param data - Task创建请求数据
- * @returns 创建的task响应
+ * 创建新任务
+ * @param data - 任务创建请求数据
+ * @returns 创建的任务响应
  */
 export function createTask(data: TaskCreateRequest): Promise<TaskResponse> {
   return post<TaskResponse>('/tasks', data);
 }
 
 /**
- * 获取所有task
- * @returns task响应数组
+ * 获取所有任务
+ * @returns 任务响应数组
  */
 export function getAllTasks(): Promise<TaskResponse[]> {
   return get<TaskResponse[]>('/tasks');
 }
 
 /**
- * 根据ID获取单个task
- * @param id - task的ID
- * @returns task响应数据
+ * 根据ID获取单个任务
+ * @param id - 任务的ID
+ * @returns 任务响应数据
  */
 export function getTask(id: number): Promise<TaskResponse> {
   return get<TaskResponse>(`/tasks/${id}`);
@@ -53,7 +49,5 @@ export function deleteTask(id: number): Promise<void> {
 export default {
   createTask,
   getAllTasks,
-  getTask,
-  updateTask,
-  deleteTask,
+  getTask
 };
