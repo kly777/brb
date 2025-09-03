@@ -3,8 +3,18 @@
     <h3>Add New Task</h3>
     <form @submit.prevent="addTask">
       <div class="form-group">
-        <label for="eventId">Event ID:</label>
-        <input id="eventId" v-model.number="newTask.eventId" type="number" required placeholder="Enter event ID" />
+        <label for="eventId">Event:</label>
+        <select id="eventId" v-model.number="newTask.eventId" required :disabled="loading">
+          <option v-if="loading" value="">Loading events...</option>
+          <option v-else value="">Select an event</option>
+          <option
+            v-for="event in events"
+            :key="event.id"
+            :value="event.id"
+          >
+            {{ event.title }} (ID: {{ event.id }})
+          </option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -51,9 +61,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { createTask } from '../api/task'
-import type { TaskCreateRequest } from '../api/types'
+import { getAllEvents } from '../api/event'
+import type { TaskCreateRequest, EventResponse } from '../api/types'
 
 const emit = defineEmits<{
   (e: 'task-added'): void
@@ -72,6 +83,21 @@ const newTask = ref({
 const adding = ref(false)
 const error = ref('')
 const success = ref(false)
+const events = ref<EventResponse[]>([])
+const loading = ref(false)
+
+// Fetch all events when component is mounted
+onMounted(async () => {
+  loading.value = true
+  try {
+    events.value = await getAllEvents()
+  } catch (err) {
+    console.error('Failed to fetch events:', err)
+    error.value = 'Failed to load events'
+  } finally {
+    loading.value = false
+  }
+})
 
 const addTask = async () => {
   if (!newTask.value.eventId || !newTask.value.description || !newTask.value.status) {
