@@ -48,7 +48,7 @@ func (r *BaseRepo[T]) Create(fields map[string]interface{}) (sql.Result, error) 
 }
 
 // Update 更新记录
-func (r *BaseRepo[T]) Update(id interface{}, fields map[string]interface{}) error {
+func (r *BaseRepo[T]) Update(id any, fields map[string]interface{}) error {
 	if len(fields) == 0 {
 		return fmt.Errorf("no fields to update")
 	}
@@ -97,7 +97,16 @@ func (r *BaseRepo[T]) FindByID(id interface{}) (*T, error) {
 
 // FindAll 查询所有记录
 func (r *BaseRepo[T]) FindAll() ([]*T, error) {
+	return r.FindAllWithFields(nil)
+}
+
+// FindAllWithFields 查询所有记录，可指定字段
+func (r *BaseRepo[T]) FindAllWithFields(fields []string) ([]*T, error) {
 	query := fmt.Sprintf("SELECT * FROM %s", r.tableName)
+	if len(fields) > 0 {
+		query = fmt.Sprintf("SELECT %s FROM %s", strings.Join(fields, ", "), r.tableName)
+	}
+
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -122,8 +131,13 @@ func (r *BaseRepo[T]) FindAll() ([]*T, error) {
 
 // FindWhere 条件查询
 func (r *BaseRepo[T]) FindWhere(conditions map[string]interface{}) ([]*T, error) {
+	return r.FindWhereWithFields(conditions, nil)
+}
+
+// FindWhereWithFields 条件查询，可指定字段
+func (r *BaseRepo[T]) FindWhereWithFields(conditions map[string]any, fields []string) ([]*T, error) {
 	if len(conditions) == 0 {
-		return r.FindAll()
+		return r.FindAllWithFields(fields)
 	}
 
 	whereClauses := make([]string, 0, len(conditions))
@@ -134,8 +148,14 @@ func (r *BaseRepo[T]) FindWhere(conditions map[string]interface{}) ([]*T, error)
 		values = append(values, value)
 	}
 
+	selectClause := "*"
+	if len(fields) > 0 {
+		selectClause = strings.Join(fields, ", ")
+	}
+
 	query := fmt.Sprintf(
-		"SELECT * FROM %s WHERE %s",
+		"SELECT %s FROM %s WHERE %s",
+		selectClause,
 		r.tableName,
 		strings.Join(whereClauses, " AND "),
 	)

@@ -220,145 +220,284 @@ const addQuickTodo = async (taskId: number) => {
 
 .section {
   margin-bottom: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .section h3 {
   color: #2c3e50;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .events-list,
 .tasks-list {
   display: grid;
-  gap: 15px;
+  gap: 20px;
 }
 
 .event-item,
 .task-item {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.event-item:hover,
+.task-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .event-item h4,
 .task-item h4 {
   margin-top: 0;
   color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.event-info p,
+.task-info p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 16px;
 }
 
 .event-details,
 .task-details {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 16px;
   font-size: 14px;
 }
 
 .event-details span,
 .task-details span {
-  background: #f8f9fa;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .time-range {
   width: 100%;
-  margin-top: 5px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.time-range span {
+  background: none;
+  color: #2c3e50;
+  padding: 0;
+  font-size: 14px;
 }
 
 .loading,
 .error,
 .empty {
   text-align: center;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 40px;
+  border-radius: 12px;
+  font-size: 16px;
 }
 
 .loading {
-  background: #e3f2fd;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
   color: #1976d2;
 }
 
 .error {
-  background: #ffebee;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
   color: #d32f2f;
 }
 
 .empty {
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
   color: #757575;
 }
 
 .task-actions {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #eee;
 }
 
 .add-todo-btn {
-  padding: 8px 16px;
-  background: #27ae60;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
 .add-todo-btn:hover {
-  background: #219a52;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
 }
 
 .quick-todo-form {
-  margin-top: 15px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .quick-todo-form h5 {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .quick-todo-form .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .quick-todo-form .form-group label {
   display: block;
-  margin-bottom: 3px;
-  font-size: 13px;
-  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
 }
 
 .quick-todo-form .form-group input,
 .quick-todo-form .form-group select {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  font-size: 13px;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.quick-todo-form .form-group input:focus,
+.quick-todo-form .form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .quick-todo-form button {
-  padding: 6px 12px;
-  margin-right: 8px;
-  font-size: 13px;
+  padding: 12px 24px;
+  margin-right: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-todo-form button[type="submit"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.quick-todo-form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 .cancel-btn {
   background: #95a5a6;
+  color: white;
+  border: none;
 }
 
 .cancel-btn:hover {
   background: #7f8c8d;
+  transform: translateY(-2px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .event-task-view {
+    padding: 16px;
+  }
+  
+  .section {
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+  
+  .event-item,
+  .task-item {
+    padding: 20px;
+  }
+  
+  .event-details,
+  .task-details {
+    gap: 8px;
+  }
+  
+  .event-details span,
+  .task-details span {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  
+  .quick-todo-form {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 16px;
+  }
+  
+  .event-item,
+  .task-item {
+    padding: 16px;
+  }
+  
+  .quick-todo-form .form-group input,
+  .quick-todo-form .form-group select {
+    padding: 10px 14px;
+  }
+  
+  .quick-todo-form button {
+    padding: 10px 20px;
+    margin-right: 8px;
+  }
 }
 </style>

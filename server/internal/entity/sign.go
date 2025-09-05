@@ -1,7 +1,5 @@
 package entity
 
-
-
 // Sign 表示能指/所指实体
 type Sign struct {
 	ID        int64  `json:"id"`
