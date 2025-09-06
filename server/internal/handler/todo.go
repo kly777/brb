@@ -61,7 +61,7 @@ func (h *todoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		req.ActualEnd = r.FormValue("actualEnd")
 	}
 
-	logger.Tip.Println("Received CreateTodo request:", req)
+	logger.Tip.Printf("Received CreateTodo request:%+v", req)
 
 	todo := req.ToEntity()
 	if err := h.todoService.CreateTodo(todo); err != nil {
