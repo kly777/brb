@@ -7,6 +7,7 @@ import (
 
 	"brb/internal/dto"
 	"brb/internal/entity"
+	"brb/internal/router"
 )
 
 // signHandler 处理sign相关的HTTP请求
@@ -122,11 +123,14 @@ func (h *signHandler) DeleteSign(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// RegisterRoutes 注册sign相关路由
-func (h *signHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/signs", h.CreateSign)
-	mux.HandleFunc("GET /api/signs/{id}", h.GetSign)
-	mux.HandleFunc("PUT /api/signs/{id}", h.UpdateSign)
-	mux.HandleFunc("DELETE /api/signs/{id}", h.DeleteSign)
+// RegisterRoutes 注册sign相关路由（新接口）
+func (h *signHandler) RegisterRoutes(r router.Router) {
+    // 为所有sign路由添加统一中间件
+    api := r.Group("/api/signs")
+    
+    api.POST("", h.CreateSign)
+    api.GET("/{id}", h.GetSign)
+    api.PUT("/{id}", h.UpdateSign)
+    api.DELETE("/{id}", h.DeleteSign)
 }
 

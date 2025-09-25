@@ -8,6 +8,7 @@ import (
 
 	"brb/internal/dto"
 	"brb/internal/entity"
+	"brb/internal/router"
 	"brb/pkg/logger"
 )
 
@@ -168,11 +169,14 @@ func (h *todoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// RegisterRoutes 注册todo相关路由
-func (h *todoHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/todos", h.CreateTodo)
-	mux.HandleFunc("GET /api/todos", h.GetAllTodo)
-	mux.HandleFunc("GET /api/todos/{id}", h.GetTodo)
-	mux.HandleFunc("PUT /api/todos/{id}", h.UpdateTodo)
-	mux.HandleFunc("DELETE /api/todos/{id}", h.DeleteTodo)
+// RegisterRoutes 注册todo相关路由（新接口）
+func (h *todoHandler) RegisterRoutes(r router.Router) {
+	// 为所有todo路由添加统一中间件
+	api := r.Group("/api/todos")
+
+	api.POST("", h.CreateTodo)
+	api.GET("", h.GetAllTodo)
+	api.GET("/{id}", h.GetTodo)
+	api.PUT("/{id}", h.UpdateTodo)
+	api.DELETE("/{id}", h.DeleteTodo)
 }

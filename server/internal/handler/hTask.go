@@ -7,6 +7,7 @@ import (
 
 	"brb/internal/dto"
 	"brb/internal/entity"
+	"brb/internal/router"
 )
 
 // taskHandler 处理task相关的HTTP请求
@@ -135,11 +136,14 @@ func (h *taskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// RegisterRoutes 注册task相关路由
-func (h *taskHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/tasks", h.CreateTask)
-	mux.HandleFunc("GET /api/tasks", h.GetAllTasks)
-	mux.HandleFunc("GET /api/tasks/{id}", h.GetTask)
-	mux.HandleFunc("PUT /api/tasks/{id}", h.UpdateTask)
-	mux.HandleFunc("DELETE /api/tasks/{id}", h.DeleteTask)
+// RegisterRoutes 注册task相关路由（新接口）
+func (h *taskHandler) RegisterRoutes(r router.Router) {
+    // 为所有task路由添加统一中间件
+    api := r.Group("/api/tasks")
+    
+    api.POST("", h.CreateTask)
+    api.GET("", h.GetAllTasks)
+    api.GET("/{id}", h.GetTask)
+    api.PUT("/{id}", h.UpdateTask)
+    api.DELETE("/{id}", h.DeleteTask)
 }

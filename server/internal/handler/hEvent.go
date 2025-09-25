@@ -7,6 +7,7 @@ import (
 
 	"brb/internal/dto"
 	"brb/internal/entity"
+	"brb/internal/router"
 	"brb/pkg/logger"
 )
 
@@ -138,11 +139,13 @@ func (h *eventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// RegisterRoutes 注册event相关路由
-func (h *eventHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/events", h.CreateEvent)
-	mux.HandleFunc("GET /api/events", h.GetAllEvents)
-	mux.HandleFunc("GET /api/events/{id}", h.GetEvent)
-	mux.HandleFunc("PUT /api/events/{id}", h.UpdateEvent)
-	mux.HandleFunc("DELETE /api/events/{id}", h.DeleteEvent)
+func (h *eventHandler) RegisterRoutes(r router.Router) {
+    // 为所有event路由添加统一中间件
+    api := r.Group("/api/events")
+    
+    api.GET("", h.GetAllEvents)
+    api.GET("/{id}", h.GetEvent)
+    api.POST("", h.CreateEvent)
+    api.PUT("/{id}", h.UpdateEvent)
+    api.DELETE("/{id}", h.DeleteEvent)
 }

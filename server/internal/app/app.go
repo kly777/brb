@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"brb/internal/handler"
+	"brb/internal/middleware"
 	"brb/internal/repo"
+	"brb/internal/router"
 	"brb/internal/service"
 	"brb/pkg/logger"
 
@@ -79,29 +80,35 @@ func (a *App) initDependencies() error {
 	taskHandler := handler.NewTaskHandler(taskService)
 	eventHandler := handler.NewEventHandler(eventService)
 
-	// 注册路由 - 使用net/http的新特性，方法匹配和路径模式
-	signHandler.RegisterRoutes(a.Mux)
-	todoHandler.RegisterRoutes(a.Mux)
-	taskHandler.RegisterRoutes(a.Mux)
-	eventHandler.RegisterRoutes(a.Mux)
+	// 创建路由注册器
+	reg := router.NewStandardRouter(a.Mux)
+
+	// 全局中间件
+	reg.Use(
+		middleware.LoggingMiddleware,
+		middleware.RecoveryMiddleware,
+	)
+
+	// API 版本分组
+	v1 := reg.Group("/v1")
+
+	// 注册各模块路由
+	signHandler.RegisterRoutes(v1)
+	todoHandler.RegisterRoutes(v1)
+	taskHandler.RegisterRoutes(v1)
+	eventHandler.RegisterRoutes(v1)
 
 	return nil
 }
 
-// Run 启动应用程序
-func (a *App) Run(addr string) error {
-	// 创建反向代理到前端开发服务器
-	target, _ := url.Parse("http://localhost:5173")
 
-	// 使用中间件处理器
-	proxyHandler := CreateProxyHandler(a.Mux, target)
-	loggingHandler := CreateLoggingDivider(proxyHandler)
+func (a *App) Run(addr string) error {
 
 	// 创建自定义的 HTTP 服务器配置
 	server := &http.Server{
 		Addr:    addr,
-		Handler: loggingHandler,
-		// 设置合理的超时时间
+		Handler: a.Mux,
+		// 超时时间
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
