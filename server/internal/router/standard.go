@@ -43,7 +43,7 @@ func (r *standardRouter) handle(method, path string, handler http.HandlerFunc) {
 	fullPath := r.prefix + path
 
 	// 应用中间件
-	var h http.Handler = handler
+	h := http.Handler(handler)
 	for i := len(r.middlewares) - 1; i >= 0; i-- {
 		h = r.middlewares[i](h)
 	}

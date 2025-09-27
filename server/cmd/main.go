@@ -1,21 +1,21 @@
 package main
 
 import (
-	"log"
-
 	"brb/internal/app"
-
+	"brb/pkg/logger"
 )
 
 func main() {
-	log.Println("Starting server...")
+	logger.Info.Println("Starting server...")
 	// 创建应用程序实例
 	app, err := app.NewApp("file:brb.db?cache=shared&mode=rwc")
 	if err != nil {
-		log.Fatalf("Failed to initialize application: %v", err)
+		logger.Error.Fatalf("Failed to initialize application: %v", err)
 	}
 
-
 	// 启动HTTP服务器
-	log.Fatal(app.Run(":8080"))
+	err = app.Run(":5050")
+	if err != nil {
+		logger.Error.Fatalf("Failed to start server: %v", err)
+	}
 }

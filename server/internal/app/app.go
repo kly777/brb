@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"brb/internal/handler"
@@ -68,17 +69,31 @@ func (a *App) initDependencies() error {
 		return fmt.Errorf("failed to create event repository: %w", err)
 	}
 
+	userRepo, err := repo.NewUserRepo(a.DB)
+	if err != nil {
+		return fmt.Errorf("failed to create user repository: %w", err)
+	}
+
 	// 初始化services
 	signService := service.NewSignService(signRepo)
 	todoService := service.NewTodoService(todoRepo, taskRepo, eventRepo)
 	taskService := service.NewTaskService(taskRepo, todoRepo)
 	eventService := service.NewEventService(eventRepo, taskRepo)
+	userService := service.NewUserService(userRepo)
+
+	// 获取JWT密钥
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = "your-secret-key-change-in-production" // 默认密钥，生产环境应该使用环境变量
+		logger.Info.Println("使用默认JWT密钥，生产环境请设置JWT_SECRET环境变量")
+	}
 
 	// 初始化handlers
 	signHandler := handler.NewSignHandler(signService)
 	todoHandler := handler.NewTodoHandler(todoService)
 	taskHandler := handler.NewTaskHandler(taskService)
 	eventHandler := handler.NewEventHandler(eventService)
+	userHandler := handler.NewUserHandler(userService, jwtSecret)
 
 	// 创建路由注册器
 	reg := router.NewStandardRouter(a.Mux)
@@ -92,15 +107,21 @@ func (a *App) initDependencies() error {
 	// API 版本分组
 	v1 := reg.Group("/v1")
 
-	// 注册各模块路由
+	// 注册公开路由（无需认证）
 	signHandler.RegisterRoutes(v1)
-	todoHandler.RegisterRoutes(v1)
-	taskHandler.RegisterRoutes(v1)
-	eventHandler.RegisterRoutes(v1)
+	userHandler.RegisterRoutes(v1)
+
+	// 为受保护的路由组添加认证中间件
+	protected := v1.Group("")
+	protected.Use(middleware.RequireAuth(jwtSecret))
+
+	// 注册受保护的路由
+	todoHandler.RegisterRoutes(protected)
+	taskHandler.RegisterRoutes(protected)
+	eventHandler.RegisterRoutes(protected)
 
 	return nil
 }
-
 
 func (a *App) Run(addr string) error {
 

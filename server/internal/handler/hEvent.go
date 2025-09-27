@@ -140,12 +140,12 @@ func (h *eventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *eventHandler) RegisterRoutes(r router.Router) {
-    // 为所有event路由添加统一中间件
-    api := r.Group("/api/events")
-    
-    api.GET("", h.GetAllEvents)
-    api.GET("/{id}", h.GetEvent)
-    api.POST("", h.CreateEvent)
-    api.PUT("/{id}", h.UpdateEvent)
-    api.DELETE("/{id}", h.DeleteEvent)
+	// 为所有event路由添加统一中间件
+	api := r.Group("/api/events")
+
+	api.GET("", h.GetAllEvents)
+	api.GET("/{id}", h.GetEvent)
+	api.POST("", h.CreateEvent)
+	api.PUT("/{id}", h.UpdateEvent)
+	api.DELETE("/{id}", h.DeleteEvent)
 }
