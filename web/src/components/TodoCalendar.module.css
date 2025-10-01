@@ -1,0 +1,251 @@
+/* TodoCalendar组件的CSS Modules样式 - 改进版本 */
+.calendar {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 28px;
+  border-radius: 16px;
+  margin-bottom: 36px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.calendar h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.calendarContainer {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+/* 日历标题样式 */
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.calendarTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.currentMonth {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.navButton {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* 日历网格样式 - 改进 */
+.calendarGrid {
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.weekday {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+  border-right: 1px solid #e9ecef;
+}
+
+.weekday:last-child {
+  border-right: none;
+}
+
+.calendarDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  min-height: 400px;
+}
+
+.calendarDay {
+  min-height: 80px;
+  padding: 8px;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendarDay:hover {
+  background: #f8f9fa;
+}
+
+.calendarDay:nth-child(7n) {
+  border-right: none;
+}
+
+.calendarDay.otherMonth {
+  background: #f8f9fa;
+  color: #adb5bd;
+}
+
+.calendarDay.currentMonth {
+  background: white;
+}
+
+.calendarDay.today {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.dayNumber {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #2c3e50;
+  align-self: flex-start;
+}
+
+.calendarDay.otherMonth .dayNumber {
+  color: #adb5bd;
+}
+
+.calendarDay.today .dayNumber {
+  color: #2196f3;
+  font-weight: 700;
+}
+
+.dayTodos {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.todoMarker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.todoMarker:hover {
+  transform: scale(1.3);
+}
+
+/* 加载状态和错误状态 */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+  font-size: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+  color: #dc3545;
+  background: #f8d7da;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 1px solid #f5c6cb;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .calendar {
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+  
+  .calendarHeader {
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .calendarDay {
+    min-height: 60px;
+    padding: 6px;
+  }
+  
+  .dayNumber {
+    font-size: 12px;
+  }
+  
+  .todoMarker {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendarDays {
+    min-height: 300px;
+  }
+  
+  .calendarDay {
+    min-height: 50px;
+    padding: 4px;
+  }
+  
+  .weekday {
+    padding: 8px;
+    font-size: 12px;
+  }
+  
+  .navButton {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}

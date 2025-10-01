@@ -1,27 +1,4 @@
-<script setup lang="ts">
-import TodoCalendar from './components/TodoCalendar.vue'
-import TodoList from './components/TodoList.vue'
-import EventTaskView from './components/EventTaskView.vue'
-</script>
-
-<template>
-  <div class="app-container">
-    <header class="app-header">
-      <h1>BRB Task Management System</h1>
-      <p>Manage your events, tasks, and todos in one place</p>
-    </header>
-    
-    <main class="app-main">
-      <div class="app-content">
-        <TodoList />
-        <TodoCalendar />
-        <EventTaskView />
-      </div>
-    </main>
-  </div>
-</template>
-
-<style scoped>
+/* 全局应用样式 - 精简版本 */
 .app-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -61,7 +38,33 @@ import EventTaskView from './components/EventTaskView.vue'
   margin: 0 auto;
 }
 
-/* Responsive adjustments */
+/* 全局按钮样式（可被组件样式覆盖） */
+button {
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+button:disabled {
+  background: #bdc3c7;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
   .app-header {
     padding: 1.5rem;
@@ -94,4 +97,3 @@ import EventTaskView from './components/EventTaskView.vue'
     padding: 0.5rem;
   }
 }
-</style>

@@ -1,0 +1,171 @@
+/* TodoItem组件的CSS Modules样式 */
+.todoItem {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.todoItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.todoItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+}
+
+.todoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.todoTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.todoActions {
+  display: flex;
+  gap: 8px;
+  margin-left: 12px;
+}
+
+.todoButton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.editButton {
+  background: #3498db;
+  color: white;
+}
+
+.editButton:hover {
+  background: #2980b9;
+}
+
+.deleteButton {
+  background: #e74c3c;
+  color: white;
+}
+
+.deleteButton:hover {
+  background: #c0392b;
+}
+
+.todoContent {
+  color: #495057;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.todoMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #6c757d;
+  border-top: 1px solid #f8f9fa;
+  padding-top: 12px;
+}
+
+.todoPriority {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.priorityHigh {
+  background: #ffe6e6;
+  color: #d63031;
+}
+
+.priorityMedium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.priorityLow {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.todoStatus {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.statusPending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusCompleted {
+  background: #d4edda;
+  color: #155724;
+}
+
+/* 已完成任务的样式 */
+.todoItem.completed {
+  opacity: 0.7;
+  background: #f8f9fa;
+}
+
+.todoItem.completed .todoTitle {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.todoItem.completed::before {
+  background: #28a745;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .todoItem {
+    padding: 16px;
+  }
+  
+  .todoHeader {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .todoActions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .todoMeta {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
