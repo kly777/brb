@@ -61,6 +61,6 @@ func (r *standardRouter) Group(prefix string) Router {
 	}
 }
 
-func (r *standardRouter) Use(middlewares ...middleware.Middleware) {
-	r.mws = append(r.mws, middlewares...)
+func (r *standardRouter) Use(mws ...middleware.Middleware) {
+	r.mws = append(r.mws, mws...)
 }
