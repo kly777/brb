@@ -8,11 +8,11 @@ import (
 // Router 是路由注册器接口
 type Router interface {
 	// 基本HTTP方法
-	GET(path string, handler http.HandlerFunc)
-	POST(path string, handler http.HandlerFunc)
-	PUT(path string, handler http.HandlerFunc)
-	DELETE(path string, handler http.HandlerFunc)
-	PATCH(path string, handler http.HandlerFunc)
+	GET(path string, handler http.HandlerFunc, middlewares ...middleware.Middleware)
+	POST(path string, handler http.HandlerFunc, middlewares ...middleware.Middleware)
+	PUT(path string, handler http.HandlerFunc, middlewares ...middleware.Middleware)
+	DELETE(path string, handler http.HandlerFunc, middlewares ...middleware.Middleware)
+	PATCH(path string, handler http.HandlerFunc, middlewares ...middleware.Middleware)
 
 	// 路由分组
 	Group(prefix string) Router
